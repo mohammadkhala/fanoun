@@ -562,10 +562,8 @@ class ProductController extends Controller
             $stockCount = (integer) $request->input('total_stock', 0);
         }
 
-        $requestTotalStock = (integer) $request->input('total_stock', 0);
-        if ($requestTotalStock != $stockCount) {
-            $validator->getMessageBag()->add('total_stock', 'Stock calculation mismatch!');
-        }
+        // لا نقارن total_stock المرسل مع مجموع المتغيرات: الحقل قد يكون غير متزامن مع حقول stock_* (مثلاً بعد تغيير التركيبات أو الكاش).
+        // القيمة المحفوظة دائماً $stockCount.
 
         if ($validator->getMessageBag()->count() > 0) {
             return response()->json(['errors' => Helpers::error_processor($validator)]);
@@ -869,11 +867,6 @@ class ProductController extends Controller
             }
         } else {
             $stockCount = (integer) $request->input('total_stock', 0);
-        }
-
-        $requestTotalStock = (integer) $request->input('total_stock', 0);
-        if ($requestTotalStock != $stockCount) {
-            $validator->getMessageBag()->add('total_stock', 'Stock calculation mismatch!');
         }
 
         if ($validator->getMessageBag()->count() > 0) {
