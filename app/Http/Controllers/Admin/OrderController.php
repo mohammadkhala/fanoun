@@ -245,6 +245,11 @@ class OrderController extends Controller
     {
         $order = $this->order->find($request->id);
 
+        if ($order === null) {
+            Toastr::error(translate('Order not found!'));
+            return back();
+        }
+
         if (in_array($order->order_status, ['returned', 'delivered', 'failed', 'canceled'])) {
             Toastr::warning(translate('you_can_not_change_the_status_of ' . $order->order_status . ' order'));
             return back();
@@ -263,65 +268,123 @@ class OrderController extends Controller
         // Store owner handles delivery – no delivery man assignment required
         if ($request->order_status == 'returned' || $request->order_status == 'failed' || $request->order_status == 'canceled') {
             foreach ($order->details as $detail) {
-                if ($detail['is_stock_decreased'] == 1) {
-                    $product = $this->product->find($detail['product_id']);
-
-                    if ($product != null) {
-                        $varStore = [];
-                        if (count(json_decode($detail['variation'], true)) > 0) {
-                            $type = json_decode($detail['variation'], true)[0]['type'] ?? json_decode($detail['variation'], true)['type'];
-                            foreach (json_decode($product['variations'], true) as $var) {
-                                if ($type == $var['type']) {
-                                    $var['stock'] += $detail['quantity'];
-                                }
-                                $varStore[] = $var;
-                            }
-                        }
-                        $this->product->where(['id' => $product['id']])->update([
-                            'variations' => json_encode($varStore),
-                            'total_stock' => $product['total_stock'] + $detail['quantity'],
-                        ]);
-                        $this->orderDetail->where(['id' => $detail['id']])->update([
-                            'is_stock_decreased' => 0
-                        ]);
-                    }
+                if ((int) $detail['is_stock_decreased'] !== 1) {
+                    continue;
                 }
+                $product = $this->product->find($detail['product_id']);
+                if ($product === null) {
+                    continue;
+                }
+
+                $lineVars = json_decode($detail['variation'] ?? '[]', true);
+                if (! is_array($lineVars)) {
+                    $lineVars = [];
+                }
+                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
+                $hasVariantLine = $variationType !== null && $variationType !== '';
+
+                $payload = [
+                    'total_stock' => (int) $product['total_stock'] + (int) $detail['quantity'],
+                ];
+
+                if ($hasVariantLine) {
+                    $prodVars = json_decode($product['variations'] ?? '[]', true);
+                    if (! is_array($prodVars)) {
+                        $prodVars = [];
+                    }
+                    $varStore = [];
+                    foreach ($prodVars as $var) {
+                        if (($var['type'] ?? null) == $variationType) {
+                            $var['stock'] = ($var['stock'] ?? 0) + (int) $detail['quantity'];
+                        }
+                        $varStore[] = $var;
+                    }
+                    $payload['variations'] = json_encode($varStore);
+                }
+
+                $this->product->where(['id' => $product['id']])->update($payload);
+                $this->orderDetail->where(['id' => $detail['id']])->update([
+                    'is_stock_decreased' => 0,
+                ]);
             }
         } else {
-            foreach ($order->details as $detail) {
-                if ($detail['is_stock_decreased'] == 0) {
-                    $product = $this->product->find($detail['product_id']);
-
-                    if ($product != null) {
-                        //check stock
-                        foreach ($order->details as $c) {
-                            $product = $this->product->find($c['product_id']);
-                            $type = json_decode($c['variation'])[0]->type;
-                            foreach (json_decode($product['variations'], true) as $var) {
-                                if ($type == $var['type'] && $var['stock'] < $c['quantity']) {
-                                    Toastr::error(translate('Stock is insufficient!'));
-                                    return back();
-                                }
-                            }
-                        }
-
-                        $type = json_decode($detail['variation'])[0]->type;
-                        $varStore = [];
-                        foreach (json_decode($product['variations'], true) as $var) {
-                            if ($type == $var['type']) {
-                                $var['stock'] -= $detail['quantity'];
-                            }
-                            $varStore[] = $var;
-                        }
-                        $this->product->where(['id' => $product['id']])->update([
-                            'variations' => json_encode($varStore),
-                            'total_stock' => $product['total_stock'] - $detail['quantity'],
-                        ]);
-                        $this->orderDetail->where(['id' => $detail['id']])->update([
-                            'is_stock_decreased' => 1
-                        ]);
-                    }
+            foreach ($order->details as $c) {
+                if ((int) $c['is_stock_decreased'] !== 0) {
+                    continue;
                 }
+                $product = $this->product->find($c['product_id']);
+                if ($product === null) {
+                    continue;
+                }
+
+                $lineVars = json_decode($c['variation'] ?? '[]', true);
+                if (! is_array($lineVars)) {
+                    $lineVars = [];
+                }
+                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
+                $hasVariantLine = $variationType !== null && $variationType !== '';
+
+                if ($hasVariantLine) {
+                    $prodVars = json_decode($product['variations'] ?? '[]', true);
+                    if (! is_array($prodVars)) {
+                        $prodVars = [];
+                    }
+                    $enough = false;
+                    foreach ($prodVars as $var) {
+                        if (($var['type'] ?? null) == $variationType && ($var['stock'] ?? 0) >= (int) $c['quantity']) {
+                            $enough = true;
+                            break;
+                        }
+                    }
+                    if (! $enough) {
+                        Toastr::error(translate('Stock is insufficient!'));
+                        return back();
+                    }
+                } elseif ((int) $product['total_stock'] < (int) $c['quantity']) {
+                    Toastr::error(translate('Stock is insufficient!'));
+                    return back();
+                }
+            }
+
+            foreach ($order->details as $detail) {
+                if ((int) $detail['is_stock_decreased'] !== 0) {
+                    continue;
+                }
+                $product = $this->product->find($detail['product_id']);
+                if ($product === null) {
+                    continue;
+                }
+
+                $lineVars = json_decode($detail['variation'] ?? '[]', true);
+                if (! is_array($lineVars)) {
+                    $lineVars = [];
+                }
+                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
+                $hasVariantLine = $variationType !== null && $variationType !== '';
+
+                $payload = [
+                    'total_stock' => max(0, (int) $product['total_stock'] - (int) $detail['quantity']),
+                ];
+
+                if ($hasVariantLine) {
+                    $prodVars = json_decode($product['variations'] ?? '[]', true);
+                    if (! is_array($prodVars)) {
+                        $prodVars = [];
+                    }
+                    $varStore = [];
+                    foreach ($prodVars as $var) {
+                        if (($var['type'] ?? null) == $variationType) {
+                            $var['stock'] = max(0, ($var['stock'] ?? 0) - (int) $detail['quantity']);
+                        }
+                        $varStore[] = $var;
+                    }
+                    $payload['variations'] = json_encode($varStore);
+                }
+
+                $this->product->where(['id' => $product['id']])->update($payload);
+                $this->orderDetail->where(['id' => $detail['id']])->update([
+                    'is_stock_decreased' => 1,
+                ]);
             }
         }
 
