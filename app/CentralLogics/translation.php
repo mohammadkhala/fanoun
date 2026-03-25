@@ -14,8 +14,15 @@ if(!function_exists('translate')) {
 
         if (!array_key_exists($key, $lang_array)) {
             $lang_array[$key] = $processed_key;
+            $path = base_path('resources/lang/' . $local . '/messages.php');
             $str = "<?php return " . var_export($lang_array, true) . ";";
-            file_put_contents(base_path('resources/lang/' . $local . '/messages.php'), $str);
+            // الإنتاج: ملفات اللغة غالباً غير قابلة للكتابة من PHP-FPM — لا نُسقط الطلب بـ 500
+            $dir = dirname($path);
+            $canWrite = (file_exists($path) && is_writable($path))
+                || (! file_exists($path) && is_writable($dir));
+            if ($canWrite) {
+                @file_put_contents($path, $str);
+            }
             $result = $processed_key;
         } else {
             $result = __('messages.' . $key);
