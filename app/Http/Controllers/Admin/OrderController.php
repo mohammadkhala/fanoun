@@ -280,8 +280,8 @@ class OrderController extends Controller
                 if (! is_array($lineVars)) {
                     $lineVars = [];
                 }
-                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
-                $hasVariantLine = $variationType !== null && $variationType !== '';
+                $variationType = $this->orderLineVariationType($lineVars);
+                $hasVariantLine = $variationType !== null;
 
                 $payload = [
                     'total_stock' => (int) $product['total_stock'] + (int) $detail['quantity'],
@@ -321,8 +321,8 @@ class OrderController extends Controller
                 if (! is_array($lineVars)) {
                     $lineVars = [];
                 }
-                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
-                $hasVariantLine = $variationType !== null && $variationType !== '';
+                $variationType = $this->orderLineVariationType($lineVars);
+                $hasVariantLine = $variationType !== null;
 
                 if ($hasVariantLine) {
                     $prodVars = json_decode($product['variations'] ?? '[]', true);
@@ -359,8 +359,8 @@ class OrderController extends Controller
                 if (! is_array($lineVars)) {
                     $lineVars = [];
                 }
-                $variationType = $lineVars[0]['type'] ?? ($lineVars['type'] ?? null);
-                $hasVariantLine = $variationType !== null && $variationType !== '';
+                $variationType = $this->orderLineVariationType($lineVars);
+                $hasVariantLine = $variationType !== null;
 
                 $payload = [
                     'total_stock' => max(0, (int) $product['total_stock'] - (int) $detail['quantity']),
@@ -422,6 +422,27 @@ class OrderController extends Controller
 
         Toastr::success(translate('Order status updated!'));
         return back();
+    }
+
+    /**
+     * نوع المتغير من سطر الطلب (بدون الوصول إلى $decoded[0] إن لم يوجد — PHP 8 يرفع خطأ).
+     *
+     * @param  array<int|string, mixed>  $decoded
+     */
+    private function orderLineVariationType(array $decoded): ?string
+    {
+        if (array_key_exists(0, $decoded) && is_array($decoded[0])) {
+            $t = $decoded[0]['type'] ?? null;
+            if (is_string($t) && $t !== '') {
+                return $t;
+            }
+        }
+        $t = $decoded['type'] ?? null;
+        if (is_string($t) && $t !== '') {
+            return $t;
+        }
+
+        return null;
     }
 
     /**
