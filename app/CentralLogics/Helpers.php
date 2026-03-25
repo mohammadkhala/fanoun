@@ -641,6 +641,25 @@ class Helpers
     }
 
     /**
+     * Skip Passport JWT parsing when the client sends placeholder or malformed Bearer values (e.g. "null").
+     */
+    private static function passportBearerTokenIsParsable(?string $token): bool
+    {
+        if ($token === null) {
+            return false;
+        }
+        $token = trim($token);
+        if ($token === '') {
+            return false;
+        }
+        if (strcasecmp($token, 'null') === 0 || strcasecmp($token, 'undefined') === 0) {
+            return false;
+        }
+        // Laravel Passport access tokens are JWT (header.payload.sig → exactly two dots)
+        return substr_count($token, '.') === 2;
+    }
+
+    /**
      * Apply user-type-specific prices to product(s) for the current API user.
      * Use after product_data_formatting on any API response that returns products.
      *
@@ -650,7 +669,16 @@ class Helpers
      */
     public static function apply_user_type_prices_to_products(mixed $data, bool $multi): mixed
     {
-        $user = auth('api')->user();
+        $bearer = request()->bearerToken();
+        if (! self::passportBearerTokenIsParsable($bearer)) {
+            return $data;
+        }
+
+        try {
+            $user = auth('api')->user();
+        } catch (\Throwable) {
+            return $data;
+        }
         if (!$user) {
             return $data;
         }
