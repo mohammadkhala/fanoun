@@ -540,7 +540,8 @@ class ProductController extends Controller
         $combinations = Helpers::combinations($options);
 
         $stockCount = 0;
-        if (count($combinations[0]) > 0) {
+        $firstCombinationRow = $combinations[0] ?? [];
+        if (count($firstCombinationRow) > 0) {
             foreach ($combinations as $key => $combination) {
                 $str = '';
                 foreach ($combination as $k => $item) {
@@ -550,11 +551,10 @@ class ProductController extends Controller
                         $str .= str_replace(' ', '', $item);
                     }
                 }
-                $requestKey = str_replace('.', '_', $str);
-                $stock = (int) abs($request->input('stock_' . $requestKey, 0));
+                $stock = $this->variantStockFromRequest($request, $str);
                 $item = [];
                 $item['type'] = $str;
-                $item['price'] = abs($request->input('price_' . $requestKey, $request->price ?? 0));
+                $item['price'] = $this->variantPriceFromRequest($request, $str, (float) ($request->price ?? 0));
                 $item['stock'] = $stock;
                 $variations[] = $item;
                 $stockCount += $stock;
@@ -890,7 +890,8 @@ class ProductController extends Controller
         //Generates the combinations of customer choice options
         $combinations = Helpers::combinations($options);
         $stockCount = 0;
-        if (count($combinations[0]) > 0) {
+        $firstCombinationRow = $combinations[0] ?? [];
+        if (count($firstCombinationRow) > 0) {
             foreach ($combinations as $key => $combination) {
                 $str = '';
                 foreach ($combination as $k => $item) {
@@ -900,11 +901,10 @@ class ProductController extends Controller
                         $str .= str_replace(' ', '', $item);
                     }
                 }
-                $requestKey = str_replace('.', '_', $str);
-                $stock = (int) abs($request->input('stock_' . $requestKey, 0));
+                $stock = $this->variantStockFromRequest($request, $str);
                 $item = [];
                 $item['type'] = $str;
-                $item['price'] = abs($request->input('price_' . $requestKey, $request->price ?? 0));
+                $item['price'] = $this->variantPriceFromRequest($request, $str, (float) ($request->price ?? 0));
                 $item['stock'] = $stock;
                 $variations[] = $item;
                 $stockCount += $stock;
@@ -1313,5 +1313,62 @@ class ProductController extends Controller
         }
 
         return 0;
+    }
+
+    /**
+     * قراءة مخزون المتغير من الطلب رغم اختلاف تسمية الحقل (نقاط، شرطات، تحويل PHP للمفاتيح).
+     */
+    private function variantStockFromRequest(Request $request, string $typeStr): int
+    {
+        $candidates = array_unique(array_filter([
+            'stock_' . str_replace('.', '_', $typeStr),
+            'stock_' . $typeStr,
+        ]));
+        foreach ($candidates as $key) {
+            if ($request->has($key) && is_numeric($request->input($key))) {
+                return (int) max(0, (int) $request->input($key));
+            }
+        }
+        foreach ($request->all() as $key => $value) {
+            if (! is_string($key) || ! Str::startsWith($key, 'stock_')) {
+                continue;
+            }
+            if ($value === '' || $value === null || ! is_numeric($value)) {
+                continue;
+            }
+            $suffix = substr($key, strlen('stock_'));
+            if ($suffix === str_replace('.', '_', $typeStr) || $suffix === $typeStr) {
+                return (int) max(0, (int) $value);
+            }
+        }
+
+        return 0;
+    }
+
+    private function variantPriceFromRequest(Request $request, string $typeStr, float $fallback): float
+    {
+        $candidates = array_unique(array_filter([
+            'price_' . str_replace('.', '_', $typeStr),
+            'price_' . $typeStr,
+        ]));
+        foreach ($candidates as $key) {
+            if ($request->has($key) && is_numeric($request->input($key))) {
+                return (float) abs((float) $request->input($key));
+            }
+        }
+        foreach ($request->all() as $key => $value) {
+            if (! is_string($key) || ! Str::startsWith($key, 'price_')) {
+                continue;
+            }
+            if ($value === '' || $value === null || ! is_numeric($value)) {
+                continue;
+            }
+            $suffix = substr($key, strlen('price_'));
+            if ($suffix === str_replace('.', '_', $typeStr) || $suffix === $typeStr) {
+                return (float) abs((float) $value);
+            }
+        }
+
+        return (float) abs($fallback);
     }
 }
