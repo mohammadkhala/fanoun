@@ -64,6 +64,7 @@
             <div class="col-12">
                 <form action="{{ route('admin.product.store') }}" method="post" id="product_form"
                       enctype="multipart/form-data">
+                    @csrf
                     @php($language=\App\Models\BusinessSetting::where('key','language')->first()?->value ?? null)
                     @php($default_lang = 'ar')
                     @php($langListForValidation = $language ? json_decode($language, true) : [])

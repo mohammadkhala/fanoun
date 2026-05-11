@@ -275,10 +275,14 @@ function submitByAjax(formSelector, options = {}) {
         }
 
         let formData = new FormData(this);
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        if (csrfMeta && !formData.has('_token')) {
+            formData.append('_token', csrfMeta);
+        }
 
         $.ajaxSetup({
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': csrfMeta || $('meta[name="csrf-token"]').attr('content')
             }
         });
 

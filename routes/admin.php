@@ -33,11 +33,13 @@ Route::group(['as' => 'admin.'], function () {
     });
 
     Route::group(['middleware' => ['admin']], function () {
-        // Single branch mode: صفحة إعدادات الفرع الوحيد
+        // إعدادات المتجر/الفرع الافتراضي — يجب أن تبقى مسجّلة دائماً (قائمة Business Setup تربط بها).
+        // عند hide_branch_management: باقي مسارات الفروع تعيد التوجيه إلى هنا.
         Route::group(['prefix' => 'branch', 'as' => 'branch.'], function () {
+            Route::get('settings', [BranchController::class, 'settings'])->name('settings');
+            Route::put('settings', [BranchController::class, 'settingsUpdate'])->name('settings-update');
+
             if (config('feature_flags.hide_branch_management', true)) {
-                Route::get('settings', [BranchController::class, 'settings'])->name('settings');
-                Route::put('settings', [BranchController::class, 'settingsUpdate'])->name('settings-update');
                 $redirect = fn () => redirect()->route('admin.branch.settings');
                 Route::any('list', $redirect)->name('list');
                 Route::any('add', $redirect)->name('add');
@@ -124,6 +126,7 @@ Route::group(['as' => 'admin.'], function () {
             Route::get('list', [ProductController::class, 'list'])->name('list');
             Route::delete('delete/{id}', [ProductController::class, 'delete'])->name('delete');
             Route::get('status/{id}/{status}', [ProductController::class, 'status'])->name('status');
+            Route::post('quick-stock/{id}', [ProductController::class, 'quickStockUpdate'])->name('quick-stock');
             Route::post('search', [ProductController::class, 'search'])->name('search');
             Route::get('autocomplete', [ProductController::class, 'autocomplete'])->name('autocomplete');
             Route::get('bulk-import', [ProductController::class, 'bulkImportIndex'])->name('bulk-import');

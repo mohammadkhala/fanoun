@@ -59,7 +59,11 @@ class ProductController extends Controller
         if ($request->has('choice_no')) {
             foreach ($request->choice_no as $key => $no) {
                 $name = 'choice_options_' . $no;
-                $my_str = implode('', $request[$name]);
+                if (!$request->has($name)) {
+                    continue;
+                }
+                // يجب أن يطابق منطق store/update وإلا تختلف التركيبات عن حقول stock_* / price_*
+                $my_str = implode('|', preg_replace('/\s+/', ' ', $request[$name]));
                 $options[] = explode(',', $my_str);
             }
         }
@@ -701,6 +705,50 @@ class ProductController extends Controller
         Cache::forget('admin_header_low_stock');
         Toastr::success(translate('Product status updated!'));
         return back();
+    }
+
+    /**
+     * تحديث المخزون من قائمة المنتجات (منتجات بلا متغيرات فقط).
+     */
+    public function quickStockUpdate(Request $request, int $id): JsonResponse
+    {
+        $product = $this->product->withoutGlobalScopes()->find($id);
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => translate('Product not found')], 404);
+        }
+
+        $vars = json_decode($product->variations ?? '[]', true);
+        if (!is_array($vars)) {
+            $vars = [];
+        }
+        if (count($vars) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => translate('quick_stock_variants_hint'),
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'total_stock' => 'required|integer|min:0|max:100000000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first('total_stock'),
+                'errors' => Helpers::error_processor($validator),
+            ], 422);
+        }
+
+        $product->total_stock = (int) $request->input('total_stock');
+        $product->save();
+        Cache::forget('admin_header_low_stock');
+
+        return response()->json([
+            'success' => true,
+            'total_stock' => $product->total_stock,
+            'message' => translate('quick_stock_saved'),
+        ]);
     }
 
     /**

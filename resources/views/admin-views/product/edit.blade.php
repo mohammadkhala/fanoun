@@ -66,6 +66,7 @@
             <div class="col-sm-12 col-lg-12 mb-3 mb-lg-2">
                 <form action="{{route('admin.product.update',[$product['id']])}}" method="post" id="product_form"
                       enctype="multipart/form-data">
+                    @csrf
                     @php
                         $languageSetting = \App\Models\BusinessSetting::where('key','language')->first();
                         $language = $languageSetting?->value ?? null;

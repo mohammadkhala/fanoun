@@ -28,19 +28,20 @@
                 }
             @endphp
             @if(strlen($str) > 0)
+                @php $strKey = str_replace('.', '_', $str); @endphp
                 <tr>
                     <td>
                         <label for="" class="control-label">{{ $str }}</label>
                     </td>
                     <td>
-                        <input type="number" name="price_{{ $str }}" value="{{ $price }}" min="0" step="0.01"
+                        <input type="number" name="price_{{ $strKey }}" value="{{ $price }}" min="0" step="0.01"
                                class="form-control" >
-                        <span class="error-text" data-error="price_{{ $str }}"></span>
+                        <span class="error-text" data-error="price_{{ $strKey }}"></span>
                     </td>
                     <td>
-                        <input type="number" name="stock_{{ $str }}" value="0" min="0" max="1000000"
+                        <input type="number" name="stock_{{ $strKey }}" value="0" min="0" max="1000000"
                                class="form-control" onkeyup="typeof update_qty==='function'&&update_qty()" onchange="typeof update_qty==='function'&&update_qty()">
-                        <span class="error-text" data-error="stock_{{ $str }}"></span>
+                        <span class="error-text" data-error="stock_{{ $strKey }}"></span>
                     </td>
                 </tr>
             @endif

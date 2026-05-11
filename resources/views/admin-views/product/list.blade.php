@@ -204,7 +204,28 @@
                                 @endif
                             </td>
                             <td>
-                                @if($isLowStock)
+                                @php
+                                    $variantsDecoded = json_decode($product->variations ?? '[]', true);
+                                    $hasVariants = is_array($variantsDecoded) && count($variantsDecoded) > 0;
+                                @endphp
+                                @if(!$hasVariants)
+                                    <div class="quick-stock-wrap d-flex flex-wrap align-items-center gap-1"
+                                         data-product-id="{{ $product['id'] }}"
+                                         data-url="{{ route('admin.product.quick-stock', $product['id']) }}">
+                                        <input type="number" min="0" max="100000000" step="1"
+                                               class="form-control form-control-sm quick-stock-input"
+                                               style="width: 5.5rem; max-width: 100%;"
+                                               value="{{ (int) $product['total_stock'] }}"
+                                               aria-label="{{ translate('stock') }}">
+                                        <button type="button" class="btn btn-sm btn-primary quick-stock-save px-2"
+                                                title="{{ translate('save') }}">
+                                            <i class="tio-checkmark"></i>
+                                        </button>
+                                    </div>
+                                    @if($isLowStock)
+                                        <small class="text-danger fw-medium d-block mt-1">{{ translate('stock_near_end') }}</small>
+                                    @endif
+                                @elseif($isLowStock)
                                     <div class="d-flex flex-column gap-1">
                                         <label class="badge badge-low-stock-alert fs-14">{{$product['total_stock']}}</label>
                                         <small class="text-danger fw-medium">{{ translate('stock_near_end') }}</small>
@@ -333,6 +354,66 @@
                 resetSubCategoryOptions();
             }
         })();
+
+        const quickStockMessages = {
+            invalid: @json(translate('quick_stock_invalid_value')),
+            saved: @json(translate('quick_stock_saved')),
+            failed: @json(translate('quick_stock_request_failed')),
+        };
+        document.querySelectorAll('.quick-stock-save').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const wrap = btn.closest('.quick-stock-wrap');
+                if (!wrap) {
+                    return;
+                }
+                const url = wrap.getAttribute('data-url');
+                const input = wrap.querySelector('.quick-stock-input');
+                if (!url || !input) {
+                    return;
+                }
+                const totalStock = parseInt(String(input.value).trim(), 10);
+                if (isNaN(totalStock) || totalStock < 0) {
+                    toastr.error(quickStockMessages.invalid, {CloseButton: true, ProgressBar: true});
+                    return;
+                }
+                btn.disabled = true;
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({total_stock: totalStock})
+                })
+                    .then(function (r) {
+                        return r.json().then(function (data) {
+                            return {ok: r.ok, status: r.status, data: data};
+                        });
+                    })
+                    .then(function (res) {
+                        if (res.ok && res.data && res.data.success) {
+                            toastr.success(res.data.message || quickStockMessages.saved, {CloseButton: true, ProgressBar: true});
+                            input.value = res.data.total_stock != null ? res.data.total_stock : totalStock;
+                            const row = wrap.closest('tr');
+                            if (row) {
+                                row.classList.remove('table-row-low-stock');
+                            }
+                        } else {
+                            const msg = (res.data && res.data.message) ? res.data.message : quickStockMessages.failed;
+                            toastr.error(msg, {CloseButton: true, ProgressBar: true});
+                        }
+                    })
+                    .catch(function () {
+                        toastr.error(quickStockMessages.failed, {CloseButton: true, ProgressBar: true});
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                    });
+            });
+        });
     </script>
 @endpush
 
