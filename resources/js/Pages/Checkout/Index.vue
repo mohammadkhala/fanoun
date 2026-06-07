@@ -496,45 +496,55 @@ function fmt(n) {
 }
 .fgrp textarea { resize: vertical; min-height: 88px; }
 
-/* Phone composite row */
+/* Phone composite row
+   DOM order: <select> first → appears RIGHT in RTL
+              <input>  second → appears LEFT  in RTL
+   No CSS `order` needed — DOM order is already correct for RTL flex. */
 .phone-row {
     display: flex;
     flex-direction: row;
     border: 1.5px solid var(--hair, #e8e8e8);
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;          /* don't clip native select dropdown */
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 .phone-row:focus-within {
     border-color: var(--emerald-deep, #2d6a4f);
     box-shadow: 0 0 0 3px var(--emerald-soft, rgba(45,106,79,0.12));
 }
-/* RTL: select appears on the RIGHT (first visual element) */
+/* .fgrp select has specificity (0,1,1) which beats (0,1,0) of .cc-select,
+   so we need !important to override width:100% from .fgrp select */
 .cc-select {
     background: var(--glass, #f0f4f0);
     border: none !important;
-    border-inline-start: 1.5px solid var(--hair, #e8e8e8) !important; /* separator toward input */
+    border-left: 1.5px solid var(--hair, #e8e8e8) !important; /* separator between select & input */
     border-radius: 0 !important;
-    padding: 11px 12px;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    padding: 11px 10px 11px 8px;
     font-size: 13px;
     font-weight: 600;
     color: var(--ink);
     outline: none;
     cursor: pointer;
-    width: auto;
+    width: auto !important;     /* override .fgrp select { width:100% } */
+    min-width: fit-content;
     flex-shrink: 0;
     box-shadow: none !important;
-    order: 1; /* RTL first = visually rightmost */
 }
+/* Same issue: .fgrp input (0,1,1) beats .phone-input (0,1,0) */
 .phone-input {
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;     /* override .fgrp input { width:100% } */
     border: none !important;
     border-radius: 0 !important;
-    background: var(--bg, #f9f9f9);
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+    background: var(--bg, #f9f9f9) !important;
     box-shadow: none !important;
-    order: 2; /* RTL second = visually left of select */
     text-align: left;
+    direction: ltr;
 }
 
 /* Fee badge */
