@@ -125,6 +125,12 @@ watch(() => page.component, () => nextTick(initReveal));
                     <div>© 2024 {{ settings.store_name }} — جميع الحقوق محفوظة</div>
                     <div style="display:flex;gap:20px"><a href="#">الخصوصية</a><a href="#">الشروط</a></div>
                 </div>
+                <div class="fattr">
+                    برمجة وتصميم
+                    <a href="https://wa.me/970599814758" target="_blank" rel="noopener" class="fattr-link">
+                        🏠 بيت البرمجيات وتكنولوجيا المعلومات
+                    </a>
+                </div>
             </footer>
         </div>
 
@@ -145,4 +151,7 @@ watch(() => page.component, () => nextTick(initReveal));
 .fsocial{display:flex;gap:14px;margin-top:14px}
 .fsocial a{color:var(--muted);font-size:13px;text-decoration:none;transition:color .3s var(--ease)}
 .fsocial a:hover{color:var(--emerald)}
+.fattr{text-align:center;padding:12px 0 4px;font-size:12px;color:var(--muted);border-top:1px solid var(--hair);margin-top:2px}
+.fattr-link{color:var(--emerald-soft);text-decoration:none;font-weight:600;transition:color .3s var(--ease)}
+.fattr-link:hover{color:var(--emerald)}
 </style>

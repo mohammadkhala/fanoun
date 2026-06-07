@@ -3,146 +3,169 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Template;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductTemplate;
+use App\Models\Subcategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TemplateController extends Controller
 {
-    public const CATEGORIES = [
-        'corporate' => 'تكريم ومؤسسات',
-        'sports' => 'رياضة وبطولات',
-        'academic' => 'أكاديمي وتخرّج',
-        'occasion' => 'مناسبات',
-    ];
-
+    /** List all product templates with their product hierarchy. */
     public function index(): Response
     {
+        $templates = ProductTemplate::with(['product.subcategory.category'])
+            ->orderBy('product_id')
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (ProductTemplate $t) => [
+                'id'                  => $t->id,
+                'name'                => $t->name,
+                'preview_image'       => $t->preview_image,
+                'canva_template_url'  => $t->canva_template_url,
+                'sort_order'          => $t->sort_order,
+                'is_active'           => (bool) $t->is_active,
+                'product_id'          => $t->product_id,
+                'product_name'        => $t->product?->name,
+                'subcategory_name'    => $t->product?->subcategory?->name,
+                'category_name'       => $t->product?->subcategory?->category?->name,
+            ]);
+
         return Inertia::render('Admin/Templates/Index', [
-            'templates' => Template::orderBy('sort_order')->get()
-                ->map(fn (Template $t) => [
-                    'id' => $t->id,
-                    'name' => $t->name,
-                    'category' => $t->category,
-                    'category_label' => self::CATEGORIES[$t->category] ?? $t->category,
-                    'preview_image' => $t->preview_image,
-                    'retail_price' => (float) $t->retail_price,
-                    'wholesale_price' => (float) $t->wholesale_price,
-                    'badge' => $t->badge,
-                    'is_active' => (bool) $t->is_active,
-                    'designs_count' => $t->designs()->count(),
-                ]),
-            'categories' => self::CATEGORIES,
+            'templates' => $templates,
         ]);
     }
 
+    /** Show create form with cascading selectors. */
     public function create(): Response
     {
         return Inertia::render('Admin/Templates/Form', [
-            'template' => null,
-            'categories' => self::CATEGORIES,
+            'template'      => null,
+            'categories'    => Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
+            'subcategories' => Subcategory::with('category')->orderBy('category_id')->get()
+                ->map(fn ($s) => ['id' => $s->id, 'name' => $s->name, 'category_id' => $s->category_id]),
+            'products'      => Product::orderBy('sort_order')->get()
+                ->map(fn ($p) => [
+                    'id'             => $p->id,
+                    'name'           => $p->name,
+                    'subcategory_id' => $p->subcategory_id,
+                    'templates_count'=> $p->templates()->count(),
+                ]),
         ]);
     }
 
-    public function edit(Template $template): Response
+    /** Show edit form pre-filled with existing ProductTemplate. */
+    public function edit(ProductTemplate $productTemplate): Response
     {
+        $productTemplate->load('product.subcategory.category');
+
         return Inertia::render('Admin/Templates/Form', [
             'template' => [
-                'id' => $template->id,
-                'name' => $template->name,
-                'description' => $template->description,
-                'category' => $template->category,
-                'preview_image' => $template->preview_image,
-                'retail_price' => (float) $template->retail_price,
-                'wholesale_price' => (float) $template->wholesale_price,
-                'badge' => $template->badge,
-                'sort_order' => $template->sort_order,
-                'is_active' => (bool) $template->is_active,
+                'id'                 => $productTemplate->id,
+                'name'               => $productTemplate->name,
+                'preview_image'      => $productTemplate->preview_image,
+                'canva_template_url' => $productTemplate->canva_template_url,
+                'sort_order'         => $productTemplate->sort_order,
+                'is_active'          => (bool) $productTemplate->is_active,
+                'product_id'         => $productTemplate->product_id,
+                'subcategory_id'     => $productTemplate->product?->subcategory_id,
+                'category_id'        => $productTemplate->product?->subcategory?->category_id,
             ],
-            'categories' => self::CATEGORIES,
+            'categories'    => Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
+            'subcategories' => Subcategory::with('category')->orderBy('category_id')->get()
+                ->map(fn ($s) => ['id' => $s->id, 'name' => $s->name, 'category_id' => $s->category_id]),
+            'products'      => Product::orderBy('sort_order')->get()
+                ->map(fn ($p) => [
+                    'id'             => $p->id,
+                    'name'           => $p->name,
+                    'subcategory_id' => $p->subcategory_id,
+                    'templates_count'=> $p->templates()->count(),
+                ]),
         ]);
     }
 
+    /** Create a new ProductTemplate. */
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validateData($request, null);
-        $data['slug'] = $this->uniqueSlug($data['name']);
+        $data = $this->validated($request);
 
-        if ($request->hasFile('image')) {
-            $data['preview_image'] = $this->storeImage($request);
+        $product = Product::findOrFail($data['product_id']);
+
+        if ($product->templates()->count() >= 3) {
+            return back()->withErrors(['product_id' => 'هذا المنتج وصل للحد الأقصى (3 قوالب).']);
         }
-        unset($data['image']);
 
-        Template::create($data);
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('product-templates', 'public');
+        }
+
+        ProductTemplate::create([
+            'product_id'         => $data['product_id'],
+            'name'               => $data['name'],
+            'canva_template_url' => $data['canva_template_url'] ?? null,
+            'preview_image'      => $imagePath,
+            'sort_order'         => $data['sort_order'] ?? ($product->templates()->max('sort_order') + 1),
+            'is_active'          => $data['is_active'] ?? true,
+        ]);
 
         return redirect()->route('admin.templates.index')->with('success', 'تمت إضافة القالب.');
     }
 
-    public function update(Request $request, Template $template): RedirectResponse
+    /** Update an existing ProductTemplate. */
+    public function update(Request $request, ProductTemplate $productTemplate): RedirectResponse
     {
-        $data = $this->validateData($request, $template->id);
+        $data = $this->validated($request, isEdit: true);
 
         if ($request->hasFile('image')) {
-            $data['preview_image'] = $this->storeImage($request);
+            if ($productTemplate->preview_image) {
+                Storage::disk('public')->delete($productTemplate->preview_image);
+            }
+            $data['preview_image'] = $request->file('image')->store('product-templates', 'public');
         }
-        unset($data['image']);
 
-        $template->update($data);
+        $productTemplate->update([
+            'product_id'         => $data['product_id'],
+            'name'               => $data['name'],
+            'canva_template_url' => $data['canva_template_url'] ?? null,
+            'preview_image'      => $data['preview_image'] ?? $productTemplate->preview_image,
+            'sort_order'         => $data['sort_order'],
+            'is_active'          => $data['is_active'],
+        ]);
 
         return redirect()->route('admin.templates.index')->with('success', 'تم تحديث القالب.');
     }
 
-    public function toggle(Template $template): RedirectResponse
+    public function toggle(ProductTemplate $productTemplate): RedirectResponse
     {
-        $template->update(['is_active' => ! $template->is_active]);
-
-        return back()->with('success', $template->is_active ? 'تم تفعيل القالب.' : 'تم إخفاء القالب.');
+        $productTemplate->update(['is_active' => !$productTemplate->is_active]);
+        return back()->with('success', $productTemplate->is_active ? 'تم تفعيل القالب.' : 'تم إخفاء القالب.');
     }
 
-    public function destroy(Template $template): RedirectResponse
+    public function destroy(ProductTemplate $productTemplate): RedirectResponse
     {
-        $template->delete();
-
+        if ($productTemplate->preview_image) {
+            Storage::disk('public')->delete($productTemplate->preview_image);
+        }
+        $productTemplate->delete();
         return back()->with('success', 'تم حذف القالب.');
     }
 
-    private function validateData(Request $request, ?int $id): array
+    /* ── Validation ── */
+    private function validated(Request $request, bool $isEdit = false): array
     {
         return $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'category' => 'required|string|in:' . implode(',', array_keys(self::CATEGORIES)),
-            'retail_price' => 'required|numeric|min:0',
-            'wholesale_price' => 'required|numeric|min:0',
-            'badge' => 'nullable|string|max:40',
-            'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-            'image' => ($id ? 'nullable' : 'required') . '|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'product_id'         => 'required|exists:products,id',
+            'name'               => 'required|string|max:100',
+            'canva_template_url' => 'nullable|url|max:500',
+            'sort_order'         => 'nullable|integer|min:0',
+            'is_active'          => 'boolean',
+            'image'              => ($isEdit ? 'nullable' : 'nullable') . '|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
-    }
-
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'template';
-        $slug = $base;
-        $i = 1;
-        while (Template::where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $i++;
-        }
-
-        return $slug;
-    }
-
-    private function storeImage(Request $request): string
-    {
-        // Store in public/templates so existing front-end paths (/templates/x.png) keep working.
-        $file = $request->file('image');
-        $name = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('templates'), $name);
-
-        return 'templates/' . $name;
     }
 }

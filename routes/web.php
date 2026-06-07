@@ -97,14 +97,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/companies/{company}', [AdminCompanyController::class, 'show'])->name('companies.show');
     Route::patch('/companies/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
 
-    // Template management
+    // Template management (now uses ProductTemplate)
     Route::get('/templates', [AdminTemplateController::class, 'index'])->name('templates.index');
     Route::get('/templates/create', [AdminTemplateController::class, 'create'])->name('templates.create');
     Route::post('/templates', [AdminTemplateController::class, 'store'])->name('templates.store');
-    Route::get('/templates/{template}/edit', [AdminTemplateController::class, 'edit'])->name('templates.edit');
-    Route::post('/templates/{template}', [AdminTemplateController::class, 'update'])->name('templates.update');
-    Route::patch('/templates/{template}/toggle', [AdminTemplateController::class, 'toggle'])->name('templates.toggle');
-    Route::delete('/templates/{template}', [AdminTemplateController::class, 'destroy'])->name('templates.destroy');
+    Route::get('/templates/{productTemplate}/edit', [AdminTemplateController::class, 'edit'])->name('templates.edit');
+    Route::post('/templates/{productTemplate}', [AdminTemplateController::class, 'update'])->name('templates.update');
+    Route::patch('/templates/{productTemplate}/toggle', [AdminTemplateController::class, 'toggle'])->name('templates.toggle');
+    Route::delete('/templates/{productTemplate}', [AdminTemplateController::class, 'destroy'])->name('templates.destroy');
 
     // Customers
     Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');

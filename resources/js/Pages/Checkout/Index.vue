@@ -32,11 +32,8 @@ const form = useForm({
 });
 
 const countryCodes = [
-    { code: '+970', flag: 'PS', label: '+970 فلسطين' },
-    { code: '+972', flag: 'IL', label: '+972 إسرائيل' },
-    { code: '+962', flag: 'JO', label: '+962 الأردن'  },
-    { code: '+20',  flag: 'EG', label: '+20 مصر'      },
-    { code: '+966', flag: 'SA', label: '+966 السعودية' },
+    { code: '+970', label: '🇵🇸 +970' },
+    { code: '+972', label: '🇮🇱 +972' },
 ];
 
 const selectedZone = computed(() =>
@@ -51,12 +48,18 @@ const total = computed(() =>
     parseFloat(props.subtotal) + deliveryFee.value
 );
 
+/** Strip leading zero if user entered 10-digit local format (e.g. 0599…) */
+function normalizePhone(raw) {
+    const digits = raw.replace(/\D/g, '');
+    return digits.length === 10 && digits[0] === '0' ? digits.slice(1) : digits;
+}
+
 function submit() {
     form
         .transform(data => ({
             first_name:            data.first_name,
             last_name:             data.last_name,
-            contact_phone:         data.country_code + data.contact_phone,
+            contact_phone:         data.country_code + normalizePhone(data.contact_phone),
             contact_email:         data.contact_email || null,
             delivery_zone_id:      data.delivery_zone_id,
             shipping_city:         data.shipping_city,
@@ -135,7 +138,7 @@ function fmt(n) {
                                 <div class="phone-row" :class="{ 'has-err': form.errors.contact_phone }">
                                     <select v-model="form.country_code" class="cc-select">
                                         <option v-for="c in countryCodes" :key="c.code" :value="c.code">
-                                            {{ c.code }}
+                                            {{ c.label }}
                                         </option>
                                     </select>
                                     <input
@@ -496,6 +499,7 @@ function fmt(n) {
 /* Phone composite row */
 .phone-row {
     display: flex;
+    flex-direction: row;
     border: 1.5px solid var(--hair, #e8e8e8);
     border-radius: 10px;
     overflow: hidden;
@@ -505,28 +509,32 @@ function fmt(n) {
     border-color: var(--emerald-deep, #2d6a4f);
     box-shadow: 0 0 0 3px var(--emerald-soft, rgba(45,106,79,0.12));
 }
+/* RTL: select appears on the RIGHT (first visual element) */
 .cc-select {
     background: var(--glass, #f0f4f0);
     border: none !important;
-    border-left: 1.5px solid var(--hair, #e8e8e8) !important;
+    border-inline-start: 1.5px solid var(--hair, #e8e8e8) !important; /* separator toward input */
     border-radius: 0 !important;
-    padding: 11px 10px;
+    padding: 11px 12px;
     font-size: 13px;
+    font-weight: 600;
     color: var(--ink);
     outline: none;
     cursor: pointer;
     width: auto;
     flex-shrink: 0;
     box-shadow: none !important;
-    order: 2; /* LTR: select on right for RTL phone layout */
+    order: 1; /* RTL first = visually rightmost */
 }
 .phone-input {
     flex: 1;
+    min-width: 0;
     border: none !important;
     border-radius: 0 !important;
     background: var(--bg, #f9f9f9);
     box-shadow: none !important;
-    order: 1;
+    order: 2; /* RTL second = visually left of select */
+    text-align: left;
 }
 
 /* Fee badge */
