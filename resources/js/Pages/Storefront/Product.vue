@@ -16,7 +16,8 @@ function proceed() {
         window.location.href = route('login');
         return;
     }
-    window.location.href = route('canva.start', selected.value);
+    // → Polotno embedded editor (primary flow)
+    window.location.href = route('design.editor', selected.value);
 }
 </script>
 

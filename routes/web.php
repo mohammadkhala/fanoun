@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TemplateController as AdminTemplateController;
 use App\Http\Controllers\CanvaController;
+use App\Http\Controllers\DesignEditorController;
 use App\Http\Controllers\OrderTrackingController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
@@ -60,10 +61,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-/* ---------------- Canva design flow (auth required) ---------------- */
+/* ---------------- Design editor + Canva flow (auth required) ---------------- */
 Route::middleware('auth')->group(function () {
+    // Polotno embedded editor (primary design flow)
+    Route::get('/design/{productTemplate}', [DesignEditorController::class, 'show'])->name('design.editor');
+
+    // Canva external flow (for templates that have a Canva URL)
     Route::get('/canva/start/{productTemplate}', [CanvaController::class, 'start'])->name('canva.start');
     Route::get('/canva/submit/{productTemplate}', [CanvaController::class, 'submitPage'])->name('canva.submit');
+
+    // Single endpoint — accepts exported PNG from Polotno OR uploaded file from Canva
     Route::post('/canva/submit/{productTemplate}', [CanvaController::class, 'submit'])->name('canva.submit.store');
 });
 

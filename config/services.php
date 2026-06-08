@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Polotno Studio embedded editor — get key from https://polotno.dev
+    'polotno' => [
+        'key' => env('POLOTNO_KEY', 'nFt5StABaKom'),
+    ],
+
 ];
