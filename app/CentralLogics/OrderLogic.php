@@ -8,7 +8,7 @@ class OrderLogic
 {
     public static function track_order($order_id)
     {
-        return Order::with(['details'])->where(['id' => $order_id])->first();
+        return Order::with(['details', 'statusLogs'])->where(['id' => $order_id])->first();
     }
 
 }

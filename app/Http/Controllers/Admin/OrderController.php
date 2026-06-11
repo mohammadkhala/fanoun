@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use App\Services\WaSenderService;
 use App\Traits\OrderPricing;
 use Box\Spout\Common\Exception\InvalidArgumentException;
 use Box\Spout\Common\Exception\IOException;
@@ -419,6 +420,9 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             Toastr::warning(translate('Push notification failed for Customer!'));
         }
+
+        // ── WhatsApp notification via WaSender ──
+        $this->sendWhatsAppStatusNotification($order, $request->order_status, $request->input('note'));
 
         Toastr::success(translate('Order status updated!'));
         return back();
@@ -987,5 +991,87 @@ class OrderController extends Controller
             'success' => 1,
             'view' => view('admin-views.order.partials.invoice-print', compact('order'))->render(),
         ]);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  DYNAMIC ORDER UPDATE (admin enters any custom status text)
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * Admin adds a free-text status update to the order timeline.
+     * POST /admin/orders/{id}/add-update
+     */
+    public function addCustomStatus(\Illuminate\Http\Request $request, int $id): \Illuminate\Http\RedirectResponse
+    {
+        $order = $this->order->findOrFail($id);
+
+        $request->validate([
+            'custom_status' => 'required|string|max:255',
+            'note'          => 'nullable|string|max:500',
+        ]);
+
+        $oldStatus = $order->order_status;
+        $newStatus = trim($request->input('custom_status'));
+        $note      = $request->input('note');
+
+        // Update the order's current status
+        $order->order_status = $newStatus;
+        $order->save();
+
+        // Log the change
+        \App\Services\OrderStatusLogService::log($order, $oldStatus, $newStatus, $note);
+
+        // Send WhatsApp notification to customer
+        $this->sendWhatsAppStatusNotification($order, $newStatus, $note);
+
+        \Brian2694\Toastr\Facades\Toastr::success(translate('order_update_added') ?: 'تم إضافة التحديث وإشعار العميل!');
+        return back();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  WHATSAPP HELPER
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * Send a WhatsApp status-change message to the customer (non-blocking).
+     */
+    private function sendWhatsAppStatusNotification(Order $order, string $newStatus, ?string $note = null): void
+    {
+        if (!config('wasender.enabled', false)) {
+            return;
+        }
+
+        // Resolve customer phone
+        $phone = null;
+
+        if ($order->is_guest == 0 && $order->customer) {
+            $phone = $order->customer->phone ?? null;
+        }
+
+        if (empty($phone) && !empty($order->delivery_address)) {
+            $addr = is_array($order->delivery_address)
+                ? $order->delivery_address
+                : json_decode($order->delivery_address, true);
+            $phone = $addr['contact_person_number'] ?? $addr['phone'] ?? null;
+        }
+
+        if (empty($phone)) {
+            return;
+        }
+
+        $storeName = \App\CentralLogics\Helpers::get_business_settings('store_name') ?? 'المتجر';
+
+        $message = WaSenderService::buildOrderStatusMessage(
+            orderId:   $order->id,
+            newStatus: $newStatus,
+            storeName: $storeName,
+            note:      $note
+        );
+
+        try {
+            (new WaSenderService())->sendMessage($phone, $message);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('WaSender order notification: ' . $e->getMessage());
+        }
     }
 }

@@ -1,8 +1,27 @@
 <?php
 
 use App\Http\Controllers\PublicStoreLocationController;
+use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+
+// ═══ STOREFRONT ═══
+Route::get('/', [StorefrontController::class, 'home'])->name('storefront.home');
+Route::prefix('storefront')->name('storefront.')->group(function () {
+    Route::get('/products', [StorefrontController::class, 'products'])->name('products');
+    Route::get('/product/{id}', [StorefrontController::class, 'product'])->name('product');
+    Route::get('/contact', [StorefrontController::class, 'contact'])->name('contact');
+    Route::get('/offers', [StorefrontController::class, 'offers'])->name('offers');
+    Route::get('/account', [StorefrontController::class, 'account'])->name('account');
+    Route::get('/orders/track', [StorefrontController::class, 'orderTrack'])->name('orders.track');
+    Route::get('/privacy', [StorefrontController::class, 'privacy'])->name('privacy');
+    Route::get('/terms', [StorefrontController::class, 'terms'])->name('terms');
+    Route::get('/checkout', [StorefrontController::class, 'checkout'])->name('checkout');
+
+    // ── Customer auth pages (separate from admin) ──
+    Route::get('/login',    [StorefrontController::class, 'loginPage'])->name('login');
+    Route::get('/register', [StorefrontController::class, 'registerPage'])->name('register');
+});
 
 Route::get('/store-location', PublicStoreLocationController::class)->name('public.store-location');
 
@@ -86,9 +105,7 @@ Route::get('/image-proxy', function () {
     }
 });
 
-Route::get('/', function () {
-    return redirect(\route('admin.dashboard'));
-});
+// الصفحة الرئيسية → Storefront (تم تعريفها فوق عبر StorefrontController)
 
 // لوحة الفرع معطّلة — إعادة توجيه أي طلب /branch/* إلى لوحة المشرف
 Route::any('/branch/{path?}', function () {

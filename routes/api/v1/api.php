@@ -36,6 +36,8 @@ Route::group(['middleware' => 'localization'], function () {
     // Auth routes (throttle: 30/min - balance between security and UX for registration)
     Route::prefix('auth')->middleware('throttle:30,1')->group(function () {
         Route::controller(CustomerAuthController::class)->group(function () {
+            Route::post('send-whatsapp-otp',   'sendWhatsAppOtp');
+            Route::post('verify-whatsapp-otp', 'verifyWhatsAppOtp');
             Route::post('registration', 'registration');
             Route::post('login', 'login');
             Route::post('social-customer-login', 'social_customer_login');
@@ -88,8 +90,8 @@ Route::group(['middleware' => 'localization'], function () {
         Route::get('/', 'getNotifications');
     });
 
-    // Categories
-    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+    // Categories (optional auth so user_type filtering works for logged-in users)
+    Route::prefix('categories')->controller(CategoryController::class)->middleware('optional_auth_api')->group(function () {
         Route::get('/', 'getCategories');
         Route::get('childes/{category_id}', 'getChildes');
         Route::get('products/{category_id}', 'getProducts');
@@ -123,6 +125,7 @@ Route::group(['middleware' => 'localization'], function () {
                 Route::post('place', 'placeOrder');
                 Route::put('cancel', 'cancelOrder');
                 Route::post('track', 'trackOrder');
+                Route::post('track-by-phone', 'trackByPhone');
                 Route::put('payment-method', 'updatePaymentMethod');
             });
 

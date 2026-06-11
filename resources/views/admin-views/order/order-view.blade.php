@@ -34,7 +34,7 @@
 
     @php($googleMapStatus = 0)
     <div class="row">
-        <div class="col-lg-{{$order->user_id == null ? 12 : 8}} mb-3 mb-lg-0">
+        <div class="col-lg-{{($order->user_id == null && $order->is_guest == 0) ? 12 : 8}} mb-3 mb-lg-0">
             <div class="card mb-3 mb-lg-5">
                 <div class="card-body">
                     <div class="mb-3 text-dark d-print-none">
@@ -335,8 +335,11 @@
             @endif
         </div>
 
-        @if($order->user_id != null)
+        @if($order->user_id != null || $order->is_guest == 1)
         <div class="col-lg-4">
+            @php($wpRawPhone = $order->customer?->phone ?? ($order->delivery_address['contact_person_number'] ?? null))
+            @php($wpDigits  = $wpRawPhone ? preg_replace('/[^\d]/', '', $wpRawPhone) : '')
+            @php($wpNormPhone = $wpDigits ? (str_starts_with($wpDigits,'00972') ? '+972'.substr($wpDigits,5) : (str_starts_with($wpDigits,'972') ? '+972'.substr($wpDigits,3) : (str_starts_with($wpDigits,'00970') ? '+972'.substr($wpDigits,5) : (str_starts_with($wpDigits,'970') ? '+972'.substr($wpDigits,3) : (str_starts_with($wpDigits,'0')&&strlen($wpDigits)>=9 ? '+972'.substr($wpDigits,1) : (strlen($wpDigits)===9&&str_starts_with($wpDigits,'5') ? '+972'.$wpDigits : '+'.$wpDigits)))))) : null)
             @if($order['order_type'] != 'pos')
             <div class="card mb-3">
                 <h4 class="mb-0 py-3 px-2 border-bottom text-center">
@@ -371,6 +374,51 @@
                             <option value="canceled" {{$order['order_status'] == 'canceled'? 'selected' : ''}}>
                                 {{translate('canceled')}} </option>
                         </select>
+
+                        {{-- ── صندوق معلومات واتساب ── --}}
+                        @if($wpNormPhone)
+                        @php($wpAlt970 = '+970' . substr($wpNormPhone, 4))
+                        <div class="mt-2 rounded px-3 py-2 d-flex align-items-start gap-2"
+                             style="background:#e8f9f0;border:1px solid #25d366;font-size:0.82rem">
+                            <span style="font-size:1.2rem;line-height:1.3">💬</span>
+                            <div class="w-100">
+                                <div class="font-weight-bold text-dark mb-1" style="font-size:0.83rem">
+                                    إشعار واتساب سيُرسل إلى:
+                                </div>
+                                <ul class="mb-1 pr-3" style="font-size:0.83rem;line-height:1.8;font-family:monospace">
+                                    <li>
+                                        <span class="badge px-2 py-1"
+                                              style="background:#25d366;color:#fff;letter-spacing:0.3px">
+                                            {{ $wpNormPhone }}
+                                        </span>
+                                        <span class="text-muted mr-1" style="font-family:sans-serif;font-size:0.75rem">
+                                            (واتساب ✓)
+                                        </span>
+                                    </li>
+                                    <li class="text-muted">
+                                        {{ $wpAlt970 }}
+                                        <span style="font-family:sans-serif;font-size:0.75rem">
+                                            (السلطة الفلسطينية)
+                                        </span>
+                                    </li>
+                                </ul>
+                                @if($wpRawPhone && $wpRawPhone !== $wpNormPhone)
+                                <div class="text-muted" style="font-family:sans-serif;font-size:0.76rem">
+                                    الرقم الأصلي: {{ $wpRawPhone }}
+                                </div>
+                                @endif
+                                <div class="mt-1" style="color:#b85c00;font-size:0.78rem;font-family:sans-serif">
+                                    ⚠️ تأكد أن الرقم <strong>{{ $wpNormPhone }}</strong> مربوط بواتساب وإلا لن يصل الإشعار
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="mt-2 rounded px-3 py-2"
+                             style="background:#fff8e1;border:1px solid #ffc107;font-size:0.82rem;color:#856404">
+                            ⚠️ لا يوجد رقم هاتف للعميل — <strong>لن يُرسل إشعار واتساب</strong>
+                        </div>
+                        @endif
+
                         @endif
                     </div>
 
@@ -389,6 +437,40 @@
                                 {{translate('unpaid')}} </option>
                         </select>
                         @endif
+                    </div>
+
+                    {{-- ── Custom / Dynamic Status Update ─────────────────────── --}}
+                    <div class="card mt-3 border-left border-primary" style="border-left:3px solid #10b46a !important">
+                        <div class="card-header py-2">
+                            <h6 class="card-header-title mb-0 d-flex align-items-center gap-1">
+                                <i class="tio tio-edit" style="color:#10b46a"></i>
+                                إضافة تحديث للطلب
+                                <small class="text-muted font-weight-normal mr-2">— نص حر، يُرسل للعميل عبر واتساب</small>
+                            </h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <form action="{{ route('admin.orders.add-update', $order->id) }}" method="POST">
+                                @csrf
+                                <div class="form-group mb-2">
+                                    <label class="form-control-label small font-weight-bold">الحالة / المرحلة <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           name="custom_status"
+                                           class="form-control form-control-sm"
+                                           placeholder="مثال: قيد الطباعة، جاهز للاستلام، تم الشحن عبر DHL…"
+                                           required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-control-label small font-weight-bold">ملاحظة (اختياري)</label>
+                                    <textarea name="note"
+                                              class="form-control form-control-sm"
+                                              rows="2"
+                                              placeholder="تفاصيل إضافية للعميل…"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="tio tio-send"></i> حفظ وإشعار العميل
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     @include('admin-views.order.partials._status-log')

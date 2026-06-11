@@ -46,54 +46,119 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'order_id' => 'required',
-            'phone' => 'nullable'
+            'phone'    => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        $phone = $request->input('phone');
-        $userId = auth('api')->user() ? auth('api')->user()->id : config('guest_id');
-        $userType = auth('api')->user() ? 0 : 1;
-
         $order = $this->order->find($request['order_id']);
 
-        if (!isset($order)){
+        if (!$order) {
             return response()->json([
                 'errors' => [['code' => 'order', 'message' => 'Order not found!']]], 404);
         }
 
-        if (!is_null($phone)){
-            if ($order['is_guest'] == 0){
-                $trackOrder = $this->order
-                    ->with(['customer', 'deliveryAddress'])
-                    ->where(['id' => $request['order_id']])
-                    ->whereHas('customer', function ($customerSubQuery) use ($phone) {
-                        $customerSubQuery->where('phone', $phone);
-                    })
-                    ->first();
-            }else{
-                $trackOrder = $this->order
-                    ->with(['deliveryAddress'])
-                    ->where(['id' => $request['order_id']])
-                    ->whereHas('deliveryAddress', function ($addressSubQuery) use ($phone) {
-                        $addressSubQuery->where('contact_person_number', $phone);
-                    })
-                    ->first();
+        // If phone provided, verify it matches the order
+        if (!is_null($request->input('phone'))) {
+            $phoneVariants = $this->getPhoneVariants($request->input('phone'));
+
+            $verified = false;
+            if ($order->is_guest == 0 && $order->customer) {
+                $verified = in_array($order->customer->phone, $phoneVariants)
+                    || !empty(array_intersect($phoneVariants, $this->getPhoneVariants($order->customer->phone)));
+            } else {
+                // Guest: phone in delivery_address JSON OR delivery address relation
+                $deliveryPhone = $order->delivery_address['contact_person_number']
+                    ?? $order->deliveryAddress?->contact_person_number
+                    ?? null;
+                if ($deliveryPhone) {
+                    $verified = !empty(array_intersect($phoneVariants, $this->getPhoneVariants($deliveryPhone)));
+                }
             }
-        }else{
-            $trackOrder = $this->order
-                ->where(['id' => $request['order_id'], 'user_id' => $userId, 'is_guest' => $userType])
-                ->first();
-        }
 
-        if (!isset($trackOrder)){
-            return response()->json([
-                'errors' => [['code' => 'order', 'message' => 'Order not found!']]], 404);
+            if (!$verified) {
+                return response()->json([
+                    'errors' => [['code' => 'order', 'message' => 'Order not found!']]], 404);
+            }
         }
+        // No phone → allow tracking by order_id alone (public tracking page)
 
         return response()->json(OrderLogic::track_order($request['order_id']), 200);
+    }
+
+    /**
+     * Track all orders belonging to a phone number.
+     * POST /api/v1/customer/order/track-by-phone
+     */
+    public function trackByPhone(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $phoneVariants = $this->getPhoneVariants($request->input('phone'));
+
+        // Build a LIKE list for MySQL JSON search on delivery_address column
+        $jsonLikes = array_map(fn($v) => '%"' . addslashes($v) . '"%', $phoneVariants);
+
+        $orders = Order::with(['statusLogs'])
+            ->where(function ($q) use ($phoneVariants, $jsonLikes) {
+                // Registered-user orders
+                $q->whereHas('customer', fn($c) => $c->whereIn('phone', $phoneVariants));
+
+                // Guest orders — phone inside delivery_address JSON blob
+                $q->orWhere(function ($q2) use ($jsonLikes) {
+                    foreach ($jsonLikes as $like) {
+                        $q2->orWhere('delivery_address', 'LIKE', $like);
+                    }
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(30)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'errors' => [['code' => 'order', 'message' => 'No orders found for this phone number.']],
+            ], 404);
+        }
+
+        return response()->json($orders);
+    }
+
+    /**
+     * Return all possible stored formats for a Palestinian phone number.
+     */
+    private function getPhoneVariants(string $phone): array
+    {
+        $d = preg_replace('/[^\d]/', '', $phone);
+
+        // Strip 00 international prefix
+        if (str_starts_with($d, '00')) {
+            $d = substr($d, 2);
+        }
+
+        // Extract 9-digit core (without country code and without leading 0)
+        if (str_starts_with($d, '972') && strlen($d) >= 12)      $core = substr($d, 3);
+        elseif (str_starts_with($d, '970') && strlen($d) >= 12)  $core = substr($d, 3);
+        elseif (str_starts_with($d, '0') && strlen($d) >= 9)     $core = substr($d, 1);
+        elseif (strlen($d) === 9)                                  $core = $d;
+        else                                                       $core = $d; // unknown format
+
+        return array_unique([
+            '+972' . $core,   // E.164 with +972
+            '972'  . $core,   // Without + with 972
+            '+970' . $core,   // E.164 with +970
+            '970'  . $core,   // Without + with 970
+            '0'    . $core,   // Local with leading 0
+            $core,            // Bare digits
+        ]);
     }
 
     /**
@@ -157,9 +222,10 @@ class OrderController extends Controller
                 'order_type' => $request['order_type'],
                 'branch_id' => $branchId,
                 'bring_change_amount' => $request['bring_change_amount'],
-                'delivery_address_id' => $request['delivery_address_id'],
+                'delivery_address_id' => $request['delivery_address_id'] ?? null,
                 'delivery_charge' => $deliveryCharge,
-                'delivery_address' => $this->customerAddress->find($request->delivery_address_id) ?? null,
+                'delivery_address' => $this->customerAddress->find($request->delivery_address_id)
+                    ?? $request->input('delivery_address'),   // fallback للزوار بدون حساب
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

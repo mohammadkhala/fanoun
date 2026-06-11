@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\HelpController;
 use App\Http\Controllers\Admin\ShippingCompanyController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Admin\WebhookController;
+use App\Http\Controllers\Admin\DeliveryChargeSetupController;
 Route::group(['as' => 'admin.'], function () {
     Route::group(['namespace' => 'Auth', 'prefix' => 'auth', 'as' => 'auth.'], function () {
         Route::get('/code/captcha/{tmp}', [LoginController::class, 'captcha'])->name('default-captcha');
@@ -157,6 +158,7 @@ Route::group(['as' => 'admin.'], function () {
             Route::post('variant_price', [OrderController::class, 'variantPrice'])->name('variant_price');
             Route::post('add-to-cart', [OrderController::class, 'addToCart'])->name('add-to-cart');
             Route::get('pos-invoice/{id}', [OrderController::class, 'generatePosInvoice'])->name('pos-invoice');
+            Route::post('{id}/add-update', [OrderController::class, 'addCustomStatus'])->name('add-update');
         });
 
         Route::group(['prefix' => 'category', 'as' => 'category.'], function () {
@@ -293,6 +295,15 @@ Route::group(['as' => 'admin.'], function () {
 
             Route::get('app-setting', [BusinessSettingsController::class, 'appSettingIndex'])->name('app_setting');
             Route::post('app-setting', [BusinessSettingsController::class, 'appSettingUpdate'])->name('app_setting.update');
+
+            // مناطق التوصيل (area-wise delivery charges)
+            Route::get('delivery-fee', [DeliveryChargeSetupController::class, 'deliveryFeeSetup'])->name('delivery-fee');
+            Route::post('delivery-charge-type', [DeliveryChargeSetupController::class, 'changeDeliveryChargeType'])->name('delivery-charge-type');
+            Route::post('area-wise-charge', [DeliveryChargeSetupController::class, 'StoreAreaWiseDeliveryCharge'])->name('area-wise-charge');
+            Route::put('area-wise-charge/{id}', [DeliveryChargeSetupController::class, 'updateAreaWiseDeliveryCharge'])->name('area-wise-charge.update');
+            Route::delete('area-wise-charge/{id}', [DeliveryChargeSetupController::class, 'deleteAreaWiseDeliveryCharge'])->name('area-wise-charge.delete');
+            Route::post('fixed-charge', [DeliveryChargeSetupController::class, 'storeFixedDeliveryCharge'])->name('fixed-charge');
+            Route::post('km-charge', [DeliveryChargeSetupController::class, 'storeKilometerWiseDeliveryCharge'])->name('km-charge');
 
         });
 
