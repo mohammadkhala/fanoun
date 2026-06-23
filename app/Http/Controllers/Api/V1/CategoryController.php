@@ -95,7 +95,8 @@ class CategoryController extends Controller
      */
     public function getProducts($id): JsonResponse
     {
-        $products = Helpers::product_data_formatting(CategoryLogic::products($id), true);
+        $products = Helpers::filter_visible_products(CategoryLogic::products($id), true);
+        $products = Helpers::product_data_formatting($products, true);
         $products = Helpers::apply_user_type_prices_to_products($products, true);
         return response()->json($products, 200);
     }
@@ -107,7 +108,8 @@ class CategoryController extends Controller
     public function getAllProducts($id): JsonResponse
     {
         try {
-            $products = Helpers::product_data_formatting(CategoryLogic::all_products($id), true);
+            $products = Helpers::filter_visible_products(CategoryLogic::all_products($id), true);
+            $products = Helpers::product_data_formatting($products, true);
             $products = Helpers::apply_user_type_prices_to_products($products, true);
             return response()->json($products, 200);
         } catch (\Exception $e) {
@@ -120,23 +122,36 @@ class CategoryController extends Controller
      */
     public function getFeaturedCategories(): JsonResponse
     {
-        $cacheKey = CACHE_FEATURED_CATEGORIES . '_' . app()->getLocale();
-        $featuredData = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+        // ملاحظة: لا نُخزّن الرؤية/السعر الخاص بنوع العميل داخل الكاش — هذه القيم
+        // تختلف من عميل لآخر، فنُخزّن فقط القائمة الخام ونُطبّق الفلترة/التسعير بعد القراءة من الكاش.
+        $cacheKey = CACHE_FEATURED_CATEGORIES . '_raw_' . app()->getLocale();
+        $rawFeaturedData = Cache::remember($cacheKey, now()->addMinutes(30), function () {
             $featuredCategoryList = Category::active()->where(['is_featured' => 1])->get();
             $data = [];
             foreach ($featuredCategoryList as $category) {
                 $products = Product::active()->whereJsonContains('category_ids', ['id' => (string)$category->id])->take(15)->get();
                 if ($products->count() > 0) {
-                    $formatted = Helpers::product_data_formatting($products, true);
-                    $formatted = Helpers::apply_user_type_prices_to_products($formatted, true);
                     $data[] = [
                         'category' => $category,
-                        'products' => $formatted
+                        'products' => $products,
                     ];
                 }
             }
             return $data;
         });
+
+        $featuredData = [];
+        foreach ($rawFeaturedData as $entry) {
+            $products = Helpers::filter_visible_products($entry['products'], true);
+            if (count($products) > 0) {
+                $formatted = Helpers::product_data_formatting($products, true);
+                $formatted = Helpers::apply_user_type_prices_to_products($formatted, true);
+                $featuredData[] = [
+                    'category' => $entry['category'],
+                    'products' => $formatted,
+                ];
+            }
+        }
         return response()->json(['featured_data' => $featuredData], 200);
     }
     public function getPopularCategories(): JsonResponse

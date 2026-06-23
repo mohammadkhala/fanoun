@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\BusinessSettingsController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CouponController;
@@ -84,6 +85,15 @@ Route::group(['as' => 'admin.'], function () {
             Route::get('list', [BannerController::class, 'list'])->name('list');
             Route::get('status/{id}/{status}', [BannerController::class, 'status'])->name('status');
             Route::delete('delete/{id}', [BannerController::class, 'delete'])->name('delete');
+        });
+
+        Route::group(['prefix' => 'client', 'as' => 'client.'], function () {
+            Route::get('add-new', [ClientController::class, 'index'])->name('add-new');
+            Route::post('store', [ClientController::class, 'store'])->name('store');
+            Route::get('edit/{id}', [ClientController::class, 'edit'])->name('edit');
+            Route::put('update/{id}', [ClientController::class, 'update'])->name('update');
+            Route::get('status/{id}/{status}', [ClientController::class, 'status'])->name('status');
+            Route::delete('delete/{id}', [ClientController::class, 'delete'])->name('delete');
         });
 
         Route::group(['prefix' => 'attribute', 'as' => 'attribute.'], function () {

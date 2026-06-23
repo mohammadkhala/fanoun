@@ -21,6 +21,9 @@ Route::prefix('storefront')->name('storefront.')->group(function () {
     // ── Customer auth pages (separate from admin) ──
     Route::get('/login',    [StorefrontController::class, 'loginPage'])->name('login');
     Route::get('/register', [StorefrontController::class, 'registerPage'])->name('register');
+
+    // ── Fabric.js Design Editor ──
+    Route::get('/design', [StorefrontController::class, 'designEditor'])->name('design');
 });
 
 Route::get('/store-location', PublicStoreLocationController::class)->name('public.store-location');

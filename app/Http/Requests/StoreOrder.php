@@ -31,6 +31,7 @@ class StoreOrder extends FormRequest
             'cart.*.product_id' => 'required|numeric|exists:products,id',
             'cart.*.quantity' => 'required|numeric|min:1',
             'cart.*.variant' => 'nullable|string',
+            'cart.*.design_image' => 'nullable|string|max:500',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'required|string',
             'payment_platform' => 'nullable|string|in:web,app',

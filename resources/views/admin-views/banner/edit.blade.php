@@ -34,6 +34,17 @@
                                        placeholder="{{ translate('New banner') }}" required>
                             </div>
                             <div class="mb-5">
+                                <label class="input-label d-flex align-items-center gap-1">
+                                    {{ translate('banner_placement') ?: 'موضع البانر في المتجر' }}
+                                    <i class="tio-info-outlined text-muted fs-14" data-toggle="tooltip" data-placement="top"
+                                       title="حدد أين يظهر هذا البانر في الموقع"></i>
+                                </label>
+                                <select name="placement" class="form-control form-control-lg">
+                                    <option value="main" {{ ($banner['placement'] ?? 'main') === 'main' ? 'selected' : '' }}>{{ translate('main_banner') ?: 'البانر الرئيسي (السلايدر)' }}</option>
+                                    <option value="hero_grid" {{ ($banner['placement'] ?? '') === 'hero_grid' ? 'selected' : '' }}>{{ translate('hero_grid_banner') ?: 'شبكة الواجهة (3 بطاقات أسفل العنوان)' }}</option>
+                                </select>
+                            </div>
+                            <div class="mb-5">
                                 <label class="input-label">{{translate('Redirection')}} {{translate('type')}}<span
                                         class="input-label-secondary">*</span></label>
                                 <select name="item_type" class="form-control form-control-lg" id="redirection_type">

@@ -606,6 +606,8 @@ button { font-family: var(--font); }
   color: var(--text-2); transition: border-color .2s, color .2s, box-shadow .2s;
 }
 .client-chip:hover { border-color: var(--red); color: var(--red); box-shadow: var(--sh-sm); }
+.client-chip-logo { padding: 0 18px; }
+.client-chip-logo img { display: block; }
 
 /* ══ SKELETON ══ */
 .skel {
@@ -1028,33 +1030,15 @@ button { font-family: var(--font); }
   </div>
 </section>
 
-<!-- ═══ CLIENTS ═══ -->
-<div class="clients-sec reveal">
+<!-- ═══ CLIENTS ═══ (تُضاف من لوحة الإدارة ← التسويق ← عملاؤنا يثقون بنا) -->
+<div class="clients-sec reveal" id="clients-sec" style="display:none">
   <div class="wrap" style="margin-bottom:18px">
     <div class="sec-head" style="margin-bottom:0">
       <h2 class="sec-title" style="font-size:18px">عملاؤنا يثقون بنا</h2>
     </div>
   </div>
   <div class="marquee-wrap">
-    <div class="marquee-track" id="marquee">
-      <div class="client-chip">شركة المستقبل</div>
-      <div class="client-chip">مطعم الأصالة</div>
-      <div class="client-chip">متجر النخبة</div>
-      <div class="client-chip">مكتبة الفكر</div>
-      <div class="client-chip">صيدلية الشفاء</div>
-      <div class="client-chip">معهد الإبداع</div>
-      <div class="client-chip">شركة النجوم</div>
-      <div class="client-chip">مطعم البيت</div>
-      <!-- Duplicate for seamless loop -->
-      <div class="client-chip">شركة المستقبل</div>
-      <div class="client-chip">مطعم الأصالة</div>
-      <div class="client-chip">متجر النخبة</div>
-      <div class="client-chip">مكتبة الفكر</div>
-      <div class="client-chip">صيدلية الشفاء</div>
-      <div class="client-chip">معهد الإبداع</div>
-      <div class="client-chip">شركة النجوم</div>
-      <div class="client-chip">مطعم البيت</div>
-    </div>
+    <div class="marquee-track" id="marquee"></div>
   </div>
 </div>
 
@@ -1466,11 +1450,13 @@ async function init() {
     ? fetch(`${API}/categories/products/${filterCatId}`).then(r=>r.json())
     : fetch(`${API}/products/latest?limit=10`).then(r=>r.json());
 
-  const [catsRes, prodsRes, discRes, flashRes] = await Promise.allSettled([
+  const [catsRes, prodsRes, discRes, flashRes, heroGridRes, clientsRes] = await Promise.allSettled([
     fetch(`${API}/categories`).then(r=>r.json()),
     fetchProds,
     fetch(`${API}/products/discounted?limit=5`).then(r=>r.json()),
     fetch(`${API}/flash-sale?limit=4`).then(r=>r.json()),
+    fetch(`${API}/banners?placement=hero_grid`).then(r=>r.json()),
+    fetch(`${API}/clients`).then(r=>r.json()),
   ]);
 
   // ── CATEGORIES ──
@@ -1585,6 +1571,46 @@ async function init() {
           <span class="flash-prod-price">${price.toFixed(0)} ${CUR}</span></div>
         </a>`;
       }).join('');
+    }
+  }
+
+  // ── HERO GRID BANNERS (تُدخل من لوحة الإدارة ← التسويق ← البانر) ──
+  if (heroGridRes.status === 'fulfilled') {
+    const heroBanners = Array.isArray(heroGridRes.value) ? heroGridRes.value : [];
+    const cells = document.querySelectorAll('#hero-grid .hero-cell');
+    heroBanners.slice(0, cells.length).forEach((b, i) => {
+      const cell = cells[i];
+      if (!cell || !b.image_fullpath) return;
+      cell.style.backgroundImage = `url('${b.image_fullpath}')`;
+      cell.style.backgroundSize = 'cover';
+      cell.style.backgroundPosition = 'center';
+      const ph = cell.querySelector('.hero-cell-ph');
+      if (ph) ph.style.display = 'none';
+      const label = cell.querySelector('.hero-cell-label');
+      if (label && b.title) label.textContent = b.title;
+      if (b.product_id) {
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => location.href = `/storefront/product/${b.product_id}`;
+      } else if (b.category_id) {
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => location.href = `/storefront/products?category=${b.category_id}`;
+      }
+    });
+  }
+
+  // ── CLIENTS — عملاؤنا يثقون بنا (تُدخل من لوحة الإدارة ← التسويق) ──
+  if (clientsRes.status === 'fulfilled') {
+    const clients = Array.isArray(clientsRes.value) ? clientsRes.value : [];
+    if (clients.length) {
+      const chip = c => {
+        const safeName = (c.name||'').replace(/</g,'&lt;');
+        return c.logo_fullpath
+          ? `<div class="client-chip client-chip-logo" title="${safeName}"><img src="${c.logo_fullpath}" alt="${safeName}" style="height:28px;max-width:120px;object-fit:contain" onerror="this.parentNode.textContent='${safeName}'"></div>`
+          : `<div class="client-chip">${safeName}</div>`;
+      };
+      // تكرار القائمة مرتين لإنشاء تأثير تمرير سلس (marquee) بدون فجوة
+      document.getElementById('marquee').innerHTML = clients.map(chip).join('') + clients.map(chip).join('');
+      document.getElementById('clients-sec').style.display = 'block';
     }
   }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-<<<<<<< HEAD
 use App\CentralLogics\Helpers;
 use App\Models\Banner;
 use App\Models\Category;
@@ -51,25 +50,11 @@ class AppServiceProvider extends ServiceProvider
                 class_alias($class, $alias);
             }
         }
-=======
-use Illuminate\Support\Facades\Vite;
-use Illuminate\Support\ServiceProvider;
-
-class AppServiceProvider extends ServiceProvider
-{
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
->>>>>>> 234599e73e73522fe1ac606664f852ec8702d836
     }
 
     /**
      * Bootstrap any application services.
-<<<<<<< HEAD
-     *
+*
      * @return void
      */
     public function boot()
@@ -141,11 +126,5 @@ class AppServiceProvider extends ServiceProvider
             });
             $view->with('sidebarOrderCounts', $orderCounts);
         });
-=======
-     */
-    public function boot(): void
-    {
-        Vite::prefetch(concurrency: 3);
->>>>>>> 234599e73e73522fe1ac606664f852ec8702d836
     }
 }

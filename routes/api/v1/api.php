@@ -19,7 +19,8 @@ use App\Http\Controllers\Api\V1\{
     WishlistController,
     OrderController,
     GuestUserController,
-    ConfigController
+    ConfigController,
+    DesignController
 };
 use App\Http\Controllers\Api\V1\Auth\{
     CustomerAuthController,
@@ -83,6 +84,11 @@ Route::group(['middleware' => 'localization'], function () {
     // Banners
     Route::prefix('banners')->controller(BannerController::class)->group(function () {
         Route::get('/', 'getBanners');
+    });
+
+    // Clients (trusted-by logos shown on storefront homepage)
+    Route::prefix('clients')->controller(\App\Http\Controllers\Api\V1\ClientController::class)->group(function () {
+        Route::get('/', 'getClients');
     });
 
     // Notifications
@@ -173,6 +179,11 @@ Route::group(['middleware' => 'localization'], function () {
     // Guest user
     Route::prefix('guest')->controller(GuestUserController::class)->group(function () {
         Route::post('add', 'guestStore');
+    });
+
+    // Design editor — رفع صورة التصميم المخصص
+    Route::prefix('design')->controller(DesignController::class)->group(function () {
+        Route::post('upload', 'upload');
     });
 
 });

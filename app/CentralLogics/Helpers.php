@@ -660,6 +660,75 @@ class Helpers
     }
 
     /**
+     * Filter out products that are not visible to the current API caller's user type.
+     * Call BEFORE apply_user_type_prices_to_products on any API response that returns products.
+     *
+     * Product visibility rules (visible_to_user_types column):
+     *   NULL        → visible to everyone
+     *   []          → hidden from everyone
+     *   [0, ...]    → 0 = guest; any positive integer = user_type_id
+     *
+     * @param mixed $data Single product (array|object) or collection/array of products
+     * @param bool $multi True if $data is a list of products
+     * @return mixed Filtered data; for $multi=false returns null if the product is hidden
+     */
+    public static function filter_visible_products(mixed $data, bool $multi): mixed
+    {
+        $isGuest = true;
+        $userTypeId = null;
+        try {
+            $user = auth('api')->user();
+            if ($user) {
+                $isGuest = false;
+                $userTypeId = $user->user_type_id;
+            }
+        } catch (\Throwable) {
+            // treat unparsable/missing token as guest
+        }
+
+        $isVisible = function ($item) use ($isGuest, $userTypeId) {
+            $id = is_array($item) ? ($item['id'] ?? null) : ($item->id ?? null);
+            if (!$id) {
+                return true;
+            }
+            $product = Product::withoutGlobalScopes()->find($id);
+            if (!$product) {
+                return true;
+            }
+            $allowed = $product->visible_to_user_types; // already cast to array|null
+
+            if ($allowed === null) {
+                return true; // visible to everyone
+            }
+            if (empty($allowed)) {
+                return false; // hidden from everyone
+            }
+            if ($isGuest) {
+                return in_array(0, $allowed);
+            }
+            if ($userTypeId === null) {
+                return true; // logged-in user with no assigned type → no restriction
+            }
+            return in_array((int) $userTypeId, $allowed);
+        };
+
+        if ($multi) {
+            $filtered = [];
+            foreach ($data as $item) {
+                if ($isVisible($item)) {
+                    $filtered[] = $item;
+                }
+            }
+            if ($data instanceof \Illuminate\Support\Collection) {
+                return collect($filtered)->values();
+            }
+            return array_values($filtered);
+        }
+
+        return $isVisible($data) ? $data : null;
+    }
+
+    /**
      * Apply user-type-specific prices to product(s) for the current API user.
      * Use after product_data_formatting on any API response that returns products.
      *

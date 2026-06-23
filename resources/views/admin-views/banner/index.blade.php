@@ -39,6 +39,17 @@
                                     <input type="text" name="title" class="form-control" placeholder="{{ translate('New banner') }}" required maxlength="255">
                                 </div>
                                 <div class="mb-3">
+                                    <label class="input-label d-flex align-items-center gap-1">
+                                        {{ translate('banner_placement') ?: 'موضع البانر في المتجر' }}
+                                        <i class="tio-info-outlined text-muted fs-14" data-toggle="tooltip" data-placement="top"
+                                           title="حدد أين يظهر هذا البانر في الموقع"></i>
+                                    </label>
+                                    <select name="placement" class="form-control form-control-lg">
+                                        <option value="main">{{ translate('main_banner') ?: 'البانر الرئيسي (السلايدر)' }}</option>
+                                        <option value="hero_grid">{{ translate('hero_grid_banner') ?: 'شبكة الواجهة (3 بطاقات أسفل العنوان)' }}</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label class="input-label">{{translate('Redirection')}} {{translate('type')}}<span
                                             class="input-label-secondary text-danger">*</span></label>
                                     <select name="item_type" class="form-control form-control-lg" id="redirection_type">
@@ -163,6 +174,7 @@
                             <th>#</th>
                             <th>{{translate('banner_image')}}</th>
                             <th>{{translate('title')}}</th>
+                            <th>{{ translate('banner_placement') ?: 'الموضع' }}</th>
                             <th>{{translate('status')}}</th>
                             <th class="text-center">{{translate('action')}}</th>
                         </tr>
@@ -178,6 +190,13 @@
                                 </div>
                             </td>
                             <td>{{$banner['title']}}</td>
+                            <td>
+                                @if(($banner['placement'] ?? 'main') === 'hero_grid')
+                                    <span class="badge badge-soft-info">شبكة الواجهة</span>
+                                @else
+                                    <span class="badge badge-soft-secondary">البانر الرئيسي</span>
+                                @endif
+                            </td>
                             <td>
                                 <label class="switcher">
                                     <input type="checkbox" class="switcher_input change-status"

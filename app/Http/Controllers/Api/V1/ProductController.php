@@ -32,6 +32,7 @@ class ProductController extends Controller
     public function getLatestProduct(Request $request): JsonResponse
     {
         $products = ProductLogic::get_latest_products($request['sort_by'], $request['limit'], $request['offset']);
+        $products['products'] = Helpers::filter_visible_products($products['products'], true);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         $products['products'] = Helpers::apply_user_type_prices_to_products($products['products'], true);
         return response()->json($products, 200);
@@ -189,6 +190,7 @@ class ProductController extends Controller
             ];
         }
 
+        $products['products'] = Helpers::filter_visible_products($products['products'], true);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         $products['products'] = Helpers::apply_user_type_prices_to_products($products['products'], true);
         return response()->json($products, 200);
@@ -199,6 +201,11 @@ class ProductController extends Controller
     {
         $product = ProductLogic::get_product($id);
         if (!isset($product)) {
+            return response()->json([
+                'errors' => [['code' => 'product-001', 'message' => translate('Product not found')]]
+            ], 404);
+        }
+        if (Helpers::filter_visible_products($product, false) === null) {
             return response()->json([
                 'errors' => [['code' => 'product-001', 'message' => translate('Product not found')]]
             ], 404);
@@ -239,10 +246,12 @@ class ProductController extends Controller
             $finalProducts = $relatedProducts->unique('id')->take(10);
         }
 
+        $finalProducts = Helpers::filter_visible_products($finalProducts, true);
         $relatedProducts = Helpers::product_data_formatting($finalProducts, true);
         $relatedProducts = Helpers::apply_user_type_prices_to_products($relatedProducts, true);
 
         $customersAlsoBought = ProductLogic::get_customers_also_bought($product->id, 6);
+        $customersAlsoBought = Helpers::filter_visible_products($customersAlsoBought, true);
         $customersAlsoBought = Helpers::product_data_formatting($customersAlsoBought, true);
         $customersAlsoBought = Helpers::apply_user_type_prices_to_products($customersAlsoBought, true);
 
@@ -267,6 +276,7 @@ class ProductController extends Controller
     {
         if ($this->product->find($id)) {
             $products = ProductLogic::get_related_products($id);
+            $products = Helpers::filter_visible_products($products, true);
             $products = Helpers::product_data_formatting($products, true);
             $products = Helpers::apply_user_type_prices_to_products($products, true);
             return response()->json($products, 200);
@@ -371,7 +381,9 @@ class ProductController extends Controller
     public function getDiscountedProduct(): JsonResponse
     {
         try {
-            $products = Helpers::product_data_formatting($this->product->orderBy('id', 'desc')->active()->withCount(['wishlist'])->with(['rating'])->where('discount', '>', 0)->get(), true);
+            $products = $this->product->orderBy('id', 'desc')->active()->withCount(['wishlist'])->with(['rating'])->where('discount', '>', 0)->get();
+            $products = Helpers::filter_visible_products($products, true);
+            $products = Helpers::product_data_formatting($products, true);
             $products = Helpers::apply_user_type_prices_to_products($products, true);
             return response()->json($products, 200);
         } catch (\Exception $e) {
@@ -386,6 +398,7 @@ class ProductController extends Controller
     public function getNewArrivalProducts(Request $request): JsonResponse
     {
         $products = ProductLogic::get_new_arrival_products($request['limit'], $request['offset']);
+        $products['products'] = Helpers::filter_visible_products($products['products'], true);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         $products['products'] = Helpers::apply_user_type_prices_to_products($products['products'], true);
         return response()->json($products, 200);

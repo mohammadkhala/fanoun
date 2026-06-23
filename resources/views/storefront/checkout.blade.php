@@ -241,8 +241,15 @@ async function init(){
 function renderSummary(){
   const itemsEl=document.getElementById('order-items');
   itemsEl.innerHTML=cart.map(i=>`<div class="order-item">
-    <div class="item-img">${i.img?`<img src="${i.img}" onerror="this.remove()">`:'<i class="fa fa-box" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px"></i>'}</div>
-    <div style="flex:1"><div class="item-name">${i.name}</div><div class="item-qty">${i.qty} قطعة</div></div>
+    <div class="item-img">
+      ${i.design_url
+        ? `<img src="${i.design_url}" title="تصميم مخصص" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="window.open('${i.design_url}','_blank')" onerror="this.remove()">`
+        : (i.img?`<img src="${i.img}" onerror="this.remove()">`:'<i class="fa fa-box" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px"></i>')}
+    </div>
+    <div style="flex:1">
+      <div class="item-name">${i.name}</div>
+      <div class="item-qty">${i.qty} قطعة${i.has_design?' · <span style="color:#10b46a;font-size:11px;font-weight:700"><i class="fa fa-palette"></i> تصميم مخصص</span>':''}</div>
+    </div>
     <div class="item-price">${(i.qty*parseFloat(i.price)).toFixed(2)} ${CUR}</div>
   </div>`).join('');
 
@@ -285,7 +292,11 @@ async function placeOrder(){
       payment_platform: 'web',
       order_type:       'delivery',
       is_guest:         isGuest,
-      cart: cart.map(i=>({product_id: i.id, quantity: i.qty})),
+      cart: cart.map(i=>({
+        product_id:   i.id,
+        quantity:     i.qty,
+        design_image: i.design_url || null,
+      })),
       delivery_address:{
         address:               fullAddr,
         contact_person_name:   name,

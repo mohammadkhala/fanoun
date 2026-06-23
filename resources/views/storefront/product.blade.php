@@ -158,6 +158,129 @@ button{font-family:var(--font);cursor:pointer}
 .btn-red{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;padding:11px 22px;border-radius:12px;font-size:14px;font-weight:700;transition:background .2s;cursor:pointer;border:none}
 .btn-red:hover{background:var(--red-d)}
 
+/* DESIGN BUTTON */
+.btn-design{
+  flex:1;background:#fff;color:var(--red);border:2px solid var(--red);
+  border-radius:12px;padding:14px 28px;font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;cursor:pointer
+}
+.btn-design:hover{background:var(--red-10)}
+
+/* DESIGN MODAL */
+.design-veil{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;
+  display:none;align-items:center;justify-content:center
+}
+.design-veil.on{display:flex}
+.design-modal{
+  background:#1a1f1c;border-radius:20px;overflow:hidden;
+  width:min(98vw,1200px);height:min(96vh,800px);
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.6)
+}
+.dm-header{
+  background:#22282a;border-bottom:1px solid #3a4540;
+  padding:12px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0
+}
+.dm-title{font-size:16px;font-weight:800;color:#e8f0eb;font-family:'Cairo',sans-serif}
+.dm-close{
+  margin-inline-start:auto;background:none;border:none;
+  color:#8fa895;font-size:20px;cursor:pointer;padding:4px 8px;
+  border-radius:8px;transition:all .15s
+}
+.dm-close:hover{background:rgba(255,255,255,.1);color:#fff}
+.dm-body{flex:1;overflow:hidden;display:flex}
+
+/* Toolbar inside modal */
+.dm-tools{
+  background:#22282a;border-inline-end:1px solid #3a4540;
+  width:56px;display:flex;flex-direction:column;align-items:center;
+  padding:12px 0;gap:6px;flex-shrink:0
+}
+.dm-tool-btn{
+  width:40px;height:40px;border-radius:8px;background:transparent;
+  border:1px solid transparent;color:#8fa895;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all .15s;flex-shrink:0
+}
+.dm-tool-btn:hover{background:#2a3230;border-color:#3a4540;color:#e8f0eb}
+.dm-tool-btn.act{background:rgba(16,180,106,.15);border-color:#10b46a;color:#10b46a}
+.dm-tool-btn title{display:none}
+.dm-sep{width:32px;height:1px;background:#3a4540;margin:4px 0}
+
+/* Canvas area inside modal */
+.dm-canvas-area{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:#0f1512;overflow:hidden;position:relative
+}
+.dm-canvas-area::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,#1e2e26 1px,transparent 1px);
+  background-size:22px 22px;pointer-events:none
+}
+#dm-canvas-wrap{position:relative;z-index:1;
+  box-shadow:0 6px 30px rgba(0,0,0,.5)}
+#dm-canvas{display:block}
+
+/* Right props */
+.dm-props{
+  background:#22282a;border-inline-start:1px solid #3a4540;
+  width:200px;display:flex;flex-direction:column;padding:12px;
+  gap:8px;overflow-y:auto;flex-shrink:0;font-family:'Cairo',sans-serif
+}
+.dm-sec{font-size:11px;font-weight:700;color:#8fa895;
+  text-transform:uppercase;letter-spacing:.5px;margin-top:8px}
+.dm-inp{
+  background:#1a1f1c;border:1px solid #3a4540;border-radius:7px;
+  color:#e8f0eb;font-family:'Cairo',sans-serif;font-size:12px;
+  padding:6px 10px;outline:none;width:100%
+}
+.dm-inp:focus{border-color:#10b46a}
+.dm-inp-row{display:flex;align-items:center;gap:6px}
+.dm-inp-row label{font-size:11px;color:#8fa895;flex-shrink:0;min-width:36px}
+input[type="color"].dm-color{
+  width:34px;height:28px;padding:2px;border-radius:6px;
+  cursor:pointer;background:#1a1f1c;border:1px solid #3a4540
+}
+.dm-align-row{display:flex;gap:3px}
+.dm-align-btn{
+  flex:1;padding:6px;border-radius:6px;background:#1a1f1c;
+  border:1px solid #3a4540;color:#8fa895;cursor:pointer;
+  font-size:12px;text-align:center;transition:all .12s
+}
+.dm-align-btn:hover{background:rgba(16,180,106,.1);border-color:#10b46a;color:#10b46a}
+
+/* Footer with add-to-cart */
+.dm-footer{
+  background:#22282a;border-top:1px solid #3a4540;
+  padding:14px 20px;display:flex;align-items:center;
+  gap:12px;flex-shrink:0
+}
+.dm-hint{font-size:12px;color:#8fa895;flex:1;font-family:'Cairo',sans-serif}
+.dm-btn{
+  display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
+  border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;
+  font-weight:700;cursor:pointer;border:none;transition:all .15s
+}
+.dm-btn.secondary{background:#2a3230;color:#e8f0eb;border:1px solid #3a4540}
+.dm-btn.secondary:hover{background:#3a4540}
+.dm-btn.primary{background:#10b46a;color:#fff}
+.dm-btn.primary:hover{background:#0c8f52}
+.dm-btn.primary:disabled{opacity:.6;cursor:not-allowed}
+
+/* Cart design thumbnail */
+.cart-design-thumb{
+  width:36px;height:36px;border-radius:6px;object-fit:cover;
+  border:1.5px solid var(--red);margin-inline-start:8px;cursor:pointer;
+  flex-shrink:0
+}
+.design-badge{
+  display:inline-flex;align-items:center;gap:4px;background:rgba(16,180,106,.12);
+  border:1px solid var(--red);color:var(--red);padding:2px 8px;border-radius:20px;
+  font-size:11px;font-weight:700;margin-top:3px
+}
+
 /* TOASTS */
 .toasts{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:var(--navy);color:#fff;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:var(--sh-md);animation:slide-in .3s ease}
@@ -278,7 +401,10 @@ button{font-family:var(--font);cursor:pointer}
             <button class="qty-btn" onclick="changeQty(1)">+</button>
           </div>
         </div>
-        <div style="display:flex;gap:12px;margin-bottom:24px">
+        <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+          <button class="btn-design" id="btn-design" onclick="openDesignEditor()">
+            <i class="fa fa-palette"></i> صمم منتجك
+          </button>
           <button class="btn-add-cart" id="btn-cart" onclick="addProdToCart()">
             <i class="fa fa-cart-plus"></i> أضف للسلة
           </button>
@@ -326,6 +452,147 @@ button{font-family:var(--font);cursor:pointer}
     </a>
   </div>
 </div>
+
+<!-- ════════════════════════════════════
+     DESIGN EDITOR MODAL
+════════════════════════════════════ -->
+<div class="design-veil" id="design-veil">
+  <div class="design-modal">
+
+    <!-- Header -->
+    <div class="dm-header">
+      <i class="fa fa-palette" style="color:#10b46a;font-size:18px"></i>
+      <span class="dm-title">محرر التصميم</span>
+      <span id="dm-prod-label" style="font-size:12px;color:#8fa895;font-family:'Cairo',sans-serif"></span>
+      <button class="dm-close" onclick="closeDesignEditor()"><i class="fa fa-xmark"></i></button>
+    </div>
+
+    <!-- Body -->
+    <div class="dm-body">
+
+      <!-- Vertical tools -->
+      <div class="dm-tools">
+        <button class="dm-tool-btn act" id="dm-sel" onclick="dmTool('select')" title="اختيار"><i class="fa fa-arrow-pointer"></i></button>
+        <div class="dm-sep"></div>
+        <button class="dm-tool-btn" onclick="dmAddText()" title="نص"><i class="fa fa-font"></i></button>
+        <button class="dm-tool-btn" onclick="dmAddRect()" title="مستطيل"><i class="fa fa-square"></i></button>
+        <button class="dm-tool-btn" onclick="dmAddCircle()" title="دائرة"><i class="fa fa-circle"></i></button>
+        <button class="dm-tool-btn" onclick="dmAddLine()" title="خط"><i class="fa fa-minus"></i></button>
+        <div class="dm-sep"></div>
+        <button class="dm-tool-btn" onclick="document.getElementById('dm-img-in').click()" title="رفع صورة"><i class="fa fa-image"></i></button>
+        <input type="file" id="dm-img-in" accept="image/*" style="display:none" onchange="dmUploadImg(event)">
+        <div class="dm-sep"></div>
+        <button class="dm-tool-btn" onclick="dmUndo()" title="تراجع"><i class="fa fa-rotate-left"></i></button>
+        <button class="dm-tool-btn" onclick="dmRedo()" title="إعادة"><i class="fa fa-rotate-right"></i></button>
+        <div class="dm-sep"></div>
+        <button class="dm-tool-btn" onclick="dmDelete()" title="حذف"><i class="fa fa-trash" style="color:#e74c3c"></i></button>
+      </div>
+
+      <!-- Canvas -->
+      <div class="dm-canvas-area" id="dm-canvas-area">
+        <div id="dm-canvas-wrap">
+          <canvas id="dm-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Properties -->
+      <div class="dm-props" id="dm-props">
+        <div style="font-size:12px;color:#8fa895;text-align:center;padding:16px 0" id="dm-no-sel">
+          <i class="fa fa-arrow-pointer" style="font-size:22px;margin-bottom:6px;display:block"></i>
+          اختر عنصراً
+        </div>
+
+        <!-- Text props -->
+        <div id="dm-text-props" style="display:none">
+          <div class="dm-sec">النص</div>
+          <div class="dm-inp-row" style="margin-bottom:6px">
+            <label>حجم</label>
+            <input type="number" class="dm-inp" id="dp-fsize" min="8" max="200" oninput="dmSet('fontSize',+this.value)">
+          </div>
+          <div class="dm-inp-row" style="margin-bottom:8px">
+            <label>لون</label>
+            <input type="color" class="dm-color" id="dp-fcolor" onchange="dmSet('fill',this.value)">
+          </div>
+          <div class="dm-align-row" style="margin-bottom:6px">
+            <button class="dm-align-btn" onclick="dmSet('fontWeight',dmC()?.fontWeight==='bold'?'normal':'bold')"><i class="fa fa-bold"></i></button>
+            <button class="dm-align-btn" onclick="dmSet('fontStyle',dmC()?.fontStyle==='italic'?'normal':'italic')"><i class="fa fa-italic"></i></button>
+          </div>
+          <div class="dm-align-row">
+            <button class="dm-align-btn" onclick="dmSet('textAlign','right')"><i class="fa fa-align-right"></i></button>
+            <button class="dm-align-btn" onclick="dmSet('textAlign','center')"><i class="fa fa-align-center"></i></button>
+            <button class="dm-align-btn" onclick="dmSet('textAlign','left')"><i class="fa fa-align-left"></i></button>
+          </div>
+        </div>
+
+        <!-- Shape/Image props -->
+        <div id="dm-shape-props" style="display:none">
+          <div class="dm-sec">التعبئة</div>
+          <div class="dm-inp-row" style="margin-bottom:8px">
+            <label>لون</label>
+            <input type="color" class="dm-color" id="dp-fill" onchange="dmSet('fill',this.value)">
+          </div>
+          <div class="dm-sec">الحدود</div>
+          <div class="dm-inp-row" style="margin-bottom:6px">
+            <label>لون</label>
+            <input type="color" class="dm-color" id="dp-stroke" onchange="dmSet('stroke',this.value)">
+          </div>
+          <div class="dm-inp-row">
+            <label>سُمك</label>
+            <input type="number" class="dm-inp" id="dp-strokew" min="0" max="30" oninput="dmSet('strokeWidth',+this.value)">
+          </div>
+        </div>
+
+        <!-- Common -->
+        <div id="dm-common-props" style="display:none">
+          <div class="dm-sec">شفافية</div>
+          <input type="range" min="0" max="1" step=".05" id="dp-opacity"
+                 oninput="dmSet('opacity',+this.value)" style="width:100%;accent-color:#10b46a;margin-bottom:8px">
+          <div class="dm-sec">محاذاة</div>
+          <div class="dm-align-row" style="margin-bottom:4px">
+            <button class="dm-align-btn" onclick="dmAlign('left')"><i class="fa fa-align-left"></i></button>
+            <button class="dm-align-btn" onclick="dmAlign('center-h')"><i class="fa fa-align-center"></i></button>
+            <button class="dm-align-btn" onclick="dmAlign('right')"><i class="fa fa-align-right"></i></button>
+          </div>
+          <div class="dm-align-row">
+            <button class="dm-align-btn" onclick="dmAlign('top')"><i class="fa fa-arrow-up"></i></button>
+            <button class="dm-align-btn" onclick="dmAlign('center-v')"><i class="fa fa-arrows-up-down"></i></button>
+            <button class="dm-align-btn" onclick="dmAlign('bottom')"><i class="fa fa-arrow-down"></i></button>
+          </div>
+        </div>
+
+        <!-- Background -->
+        <div class="dm-sec" style="margin-top:12px">خلفية</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          @foreach(['#ffffff','#000000','#f5f0eb','#0f1512','#10b46a','#1e40af','#dc2626','#fbbf24'] as $c)
+          <div style="width:24px;height:24px;background:{{ $c }};border-radius:5px;cursor:pointer;border:2px solid rgba(255,255,255,.15)"
+               onclick="dmSetBg('{{ $c }}')"></div>
+          @endforeach
+          <label style="width:24px;height:24px;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid rgba(255,255,255,.15)">
+            <input type="color" style="width:32px;height:32px;margin:-4px;border:none;cursor:pointer" onchange="dmSetBg(this.value)">
+          </label>
+        </div>
+      </div>
+
+    </div><!-- .dm-body -->
+
+    <!-- Footer -->
+    <div class="dm-footer">
+      <div class="dm-hint">
+        <i class="fa fa-lightbulb" style="color:#f59e0b"></i>
+        أضف نصاً أو صورة على المنتج ثم اضغط "أضف للسلة مع التصميم"
+      </div>
+      <button class="dm-btn secondary" onclick="closeDesignEditor()">إلغاء</button>
+      <button class="dm-btn secondary" onclick="dmClearDesign()"><i class="fa fa-eraser"></i> مسح</button>
+      <button class="dm-btn primary" id="dm-add-cart-btn" onclick="dmAddToCart()">
+        <i class="fa fa-cart-plus"></i> أضف للسلة مع التصميم
+      </button>
+    </div>
+
+  </div><!-- .design-modal -->
+</div><!-- .design-veil -->
+
+<!-- Fabric.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
 <div class="toasts" id="toasts"></div>
 
@@ -573,6 +840,355 @@ function relAdd(id,name,price,img){
 
 renderCart();
 init();
+
+/* ═══════════════════════════════════════════
+   DESIGN EDITOR
+═══════════════════════════════════════════ */
+let dm = null;           // Fabric canvas
+let dmHistory = [], dmHistIdx = -1;
+let dmProductImgUrl = '';
+
+// ── فتح وإغلاق ──
+function openDesignEditor() {
+  if (!_prod) return;
+  const veil = document.getElementById('design-veil');
+  veil.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { initDmCanvas(); }, 50);
+  document.getElementById('dm-prod-label').textContent = _prod.name || '';
+}
+
+function closeDesignEditor() {
+  document.getElementById('design-veil').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+// ── تهيئة canvas ──
+function initDmCanvas() {
+  if (dm) { dm.dispose(); dm = null; }
+
+  // حجم canvas بناءً على حاوية الـ modal
+  const area = document.getElementById('dm-canvas-area');
+  const maxW  = area.clientWidth  - 40;
+  const maxH  = area.clientHeight - 40;
+  const side  = Math.min(maxW, maxH, 600);
+
+  dm = new fabric.Canvas('dm-canvas', {
+    width: side, height: side,
+    backgroundColor: '#ffffff',
+    preserveObjectStacking: true,
+  });
+
+  const wrap = document.getElementById('dm-canvas-wrap');
+  wrap.style.width  = side + 'px';
+  wrap.style.height = side + 'px';
+
+  // نضع صورة المنتج كطبقة شبه شفافة (ghost) في الخلفية
+  const imgs = Array.isArray(_prod.image_fullpath) ? _prod.image_fullpath : (_prod.image_fullpath ? [_prod.image_fullpath] : []);
+  const realImg = imgs.find(u => u && !u.includes('img2.jpg'));
+  if (realImg) {
+    dmProductImgUrl = realImg;
+    fabric.Image.fromURL(realImg, img => {
+      // مقياس يناسب الـ canvas
+      const scaleX = (side * 0.85) / img.width;
+      const scaleY = (side * 0.85) / img.height;
+      const scale  = Math.min(scaleX, scaleY);
+      img.set({
+        left: side / 2, top: side / 2,
+        originX: 'center', originY: 'center',
+        scaleX: scale, scaleY: scale,
+        opacity: 0.25,
+        selectable: false, evented: false,
+        excludeFromExport: true,  // لا تُصدَّر مع التصميم النهائي
+        isProductGhost: true,
+      });
+      dm.add(img);
+      dm.sendToBack(img);
+      dm.renderAll();
+    }, { crossOrigin: 'anonymous' });
+  }
+
+  dm.on('selection:created',  dmUpdateProps);
+  dm.on('selection:updated',  dmUpdateProps);
+  dm.on('selection:cleared',  dmClearProps);
+  dm.on('object:modified',    () => { dmUpdateProps(); dmSaveHistory(); });
+
+  dmSaveHistory();
+  dmHistIdx = 0; dmHistory = [JSON.stringify(dm.toJSON())];
+}
+
+// ── أدوات ──
+function dmTool(t) {
+  document.querySelectorAll('.dm-tool-btn').forEach(b => b.classList.remove('act'));
+  if (t === 'select') document.getElementById('dm-sel').classList.add('act');
+  dm.isDrawingMode = false;
+}
+
+function dmAddText(txt = 'اكتب هنا', size = 22) {
+  if (!dm) return;
+  const o = new fabric.IText(txt, {
+    right: 30, top: 30, fontFamily: 'Cairo',
+    fontSize: size, fill: '#000', textAlign: 'right',
+    direction: 'rtl', originX: 'right',
+  });
+  dm.add(o); dm.setActiveObject(o); dm.renderAll(); dmSaveHistory();
+}
+function dmAddRect() {
+  if (!dm) return;
+  const o = new fabric.Rect({ left:60,top:60,width:160,height:100,fill:'#10b46a',rx:6,ry:6 });
+  dm.add(o); dm.setActiveObject(o); dm.renderAll(); dmSaveHistory();
+}
+function dmAddCircle() {
+  if (!dm) return;
+  const o = new fabric.Circle({ left:80,top:80,radius:70,fill:'#4ecdc4' });
+  dm.add(o); dm.setActiveObject(o); dm.renderAll(); dmSaveHistory();
+}
+function dmAddLine() {
+  if (!dm) return;
+  const o = new fabric.Line([30,30,250,30],{stroke:'#000',strokeWidth:3});
+  dm.add(o); dm.setActiveObject(o); dm.renderAll(); dmSaveHistory();
+}
+function dmUploadImg(ev) {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => fabric.Image.fromURL(e.target.result, img => {
+    img.scaleToWidth(Math.min(220, dm.width * 0.4));
+    img.set({left:60, top:60});
+    dm.add(img); dm.setActiveObject(img); dm.renderAll(); dmSaveHistory();
+  });
+  r.readAsDataURL(f);
+  ev.target.value = '';
+}
+
+// ── خلفية ──
+function dmSetBg(color) {
+  if (!dm) return;
+  dm.setBackgroundColor(color, () => dm.renderAll());
+  dmSaveHistory();
+}
+
+// ── خصائص ──
+function dmC() { return dm?.getActiveObject(); }
+
+function dmSet(prop, val) {
+  const o = dmC(); if (!o) return;
+  o.set(prop, val); dm.renderAll();
+}
+
+function dmAlign(pos) {
+  const o = dmC(); if (!o) return;
+  const cw = dm.width, ch = dm.height;
+  const ow = o.getScaledWidth(), oh = o.getScaledHeight();
+  if (pos==='left')     o.set({left:0, originX:'left'});
+  if (pos==='right')    o.set({left:cw-ow, originX:'left'});
+  if (pos==='center-h') o.set({left:(cw-ow)/2, originX:'left'});
+  if (pos==='top')      o.set({top:0, originY:'top'});
+  if (pos==='bottom')   o.set({top:ch-oh, originY:'top'});
+  if (pos==='center-v') o.set({top:(ch-oh)/2, originY:'top'});
+  o.setCoords(); dm.renderAll();
+}
+
+function dmDelete() {
+  const o = dmC(); if (!o || o.isProductGhost) return;
+  if (o.type === 'activeSelection') { o.getObjects().forEach(x => !x.isProductGhost && dm.remove(x)); dm.discardActiveObject(); }
+  else dm.remove(o);
+  dm.renderAll(); dmSaveHistory();
+}
+
+function dmUpdateProps() {
+  const o = dmC();
+  document.getElementById('dm-no-sel').style.display = o ? 'none' : '';
+  document.getElementById('dm-text-props').style.display = (o?.type==='i-text'||o?.type==='text') ? '' : 'none';
+  document.getElementById('dm-shape-props').style.display = (o && o.type!=='i-text' && o.type!=='text') ? '' : 'none';
+  document.getElementById('dm-common-props').style.display = o ? '' : 'none';
+  if (!o) return;
+  if (o.type==='i-text'||o.type==='text') {
+    document.getElementById('dp-fsize').value  = o.fontSize || 22;
+    document.getElementById('dp-fcolor').value = dmHex(o.fill||'#000');
+  } else {
+    document.getElementById('dp-fill').value   = dmHex(o.fill||'#10b46a');
+    document.getElementById('dp-stroke').value = dmHex(o.stroke||'#000');
+    document.getElementById('dp-strokew').value = o.strokeWidth || 0;
+  }
+  document.getElementById('dp-opacity').value = o.opacity ?? 1;
+}
+
+function dmClearProps() {
+  document.getElementById('dm-no-sel').style.display = '';
+  document.getElementById('dm-text-props').style.display = 'none';
+  document.getElementById('dm-shape-props').style.display = 'none';
+  document.getElementById('dm-common-props').style.display = 'none';
+}
+
+function dmHex(color) {
+  if (!color || color==='transparent') return '#000000';
+  if (color.startsWith('#')) return color.length===4
+    ? '#'+color[1]+color[1]+color[2]+color[2]+color[3]+color[3] : color;
+  const m = color.match(/\d+/g);
+  if (!m) return '#000000';
+  return '#'+[m[0],m[1],m[2]].map(n=>(+n).toString(16).padStart(2,'0')).join('');
+}
+
+// ── History ──
+function dmSaveHistory() {
+  if (!dm) return;
+  // استبعاد صورة الـ ghost من التاريخ
+  const objs = dm.getObjects().filter(o => !o.isProductGhost);
+  const json  = JSON.stringify(dm.toJSON(['isProductGhost','excludeFromExport']));
+  dmHistory = dmHistory.slice(0, dmHistIdx + 1);
+  dmHistory.push(json);
+  dmHistIdx = dmHistory.length - 1;
+}
+function dmUndo() {
+  if (!dm || dmHistIdx <= 0) return;
+  dmHistIdx--;
+  dm.loadFromJSON(dmHistory[dmHistIdx], () => {
+    dm.getObjects().forEach(o => { if (o.isProductGhost) { o.selectable=false; o.evented=false; } });
+    dm.renderAll();
+  });
+}
+function dmRedo() {
+  if (!dm || dmHistIdx >= dmHistory.length-1) return;
+  dmHistIdx++;
+  dm.loadFromJSON(dmHistory[dmHistIdx], () => {
+    dm.getObjects().forEach(o => { if (o.isProductGhost) { o.selectable=false; o.evented=false; } });
+    dm.renderAll();
+  });
+}
+
+// ── مسح التصميم ──
+function dmClearDesign() {
+  if (!dm) return;
+  const ghosts = dm.getObjects().filter(o => o.isProductGhost);
+  dm.clear();
+  dm.setBackgroundColor('#ffffff', () => dm.renderAll());
+  ghosts.forEach(g => dm.add(g));
+  dm.renderAll();
+  dmSaveHistory();
+}
+
+// ── أضف للسلة مع التصميم ──
+async function dmAddToCart() {
+  if (!dm || !_prod) return;
+
+  const btn = document.getElementById('dm-add-cart-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري الحفظ...';
+
+  try {
+    // 1. إخفاء صورة الـ ghost مؤقتاً للتصدير
+    const ghosts = dm.getObjects().filter(o => o.isProductGhost);
+    ghosts.forEach(o => o.set('opacity', 0));
+    dm.renderAll();
+
+    // 2. تصدير canvas
+    const dataUrl = dm.toDataURL({ format: 'png', quality: 0.92, multiplier: 2 });
+
+    // 3. إعادة الـ ghost
+    ghosts.forEach(o => o.set('opacity', 0.25));
+    dm.renderAll();
+
+    // 4. رفع الصورة للسيرفر
+    const res = await fetch(`${API}/design/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ image: dataUrl, product_id: _prod.id }),
+    });
+
+    if (!res.ok) throw new Error('فشل رفع التصميم');
+    const { url: designUrl } = await res.json();
+
+    // 5. أضف للسلة مع design_image + design_url
+    const qty = parseInt(document.getElementById('qty').value) || 1;
+    const price = parseFloat(_prod.price || _prod.unit_price || 0);
+    const disc  = parseFloat(_prod.discount || 0);
+    const finalPrice = disc > 0 ? price - price * disc / 100 : price;
+    const imgSrc = (_prod.image_fullpath && Array.isArray(_prod.image_fullpath) && _prod.image_fullpath[0])
+      ? _prod.image_fullpath[0] : '';
+
+    const existing = cart.find(i => i.id === _prod.id && i.design_url === designUrl);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({
+        id:        _prod.id,
+        name:      _prod.name,
+        price:     finalPrice,
+        qty:       qty,
+        img:       imgSrc,
+        design_url:    designUrl,    // رابط الصورة للعرض
+        has_design: true,
+      });
+    }
+
+    localStorage.setItem('f_cart', JSON.stringify(cart));
+    renderCart();
+
+    closeDesignEditor();
+    toast('✓ أُضيف للسلة مع التصميم المخصص');
+    openCart();
+
+  } catch (err) {
+    toast('خطأ: ' + (err.message || 'حدث خطأ غير متوقع'), 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-cart-plus"></i> أضف للسلة مع التصميم';
+  }
+}
+
+// ── تحديث renderCart لعرض صورة التصميم ──
+// نُعيد تعريف renderCart لتشمل صورة التصميم
+const _origRenderCart = renderCart;
+renderCart = function() {
+  const badge=document.getElementById('cart-badge');
+  const bd=document.getElementById('cart-bd');
+  const ft=document.getElementById('cart-ft');
+  const tot=document.getElementById('cart-tot');
+  badge.textContent = cart.reduce((s,i)=>s+i.qty,0);
+  badge.classList.toggle('off', cart.length===0);
+  if(!cart.length){
+    bd.innerHTML=`<div class="cart-empty-msg"><i class="fa fa-cart-shopping"></i><p>السلة فارغة</p></div>`;
+    ft.style.display='none'; return;
+  }
+  bd.innerHTML = cart.map(i=>`
+    <div class="cart-item">
+      <div class="cart-item-img">
+        ${i.design_url
+          ? `<img src="${i.design_url}" alt="تصميم" style="width:100%;height:100%;object-fit:cover" onclick="window.open('${i.design_url}','_blank')">`
+          : (i.img ? `<img src="${i.img}" onerror="this.remove()">` : '<i class="fa fa-box" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:20px"></i>')
+        }
+      </div>
+      <div style="flex:1">
+        <div class="cart-item-name">${i.name}</div>
+        <div class="cart-item-price">${i.qty} × ${parseFloat(i.price).toFixed(2)} ${CUR}</div>
+        ${i.has_design ? '<span class="design-badge"><i class="fa fa-palette"></i> تصميم مخصص</span>' : ''}
+      </div>
+      <button class="cart-item-del" onclick="removeFromCart(${i.id},'${i.design_url||''}')"><i class="fa fa-xmark"></i></button>
+    </div>`).join('');
+  tot.textContent = cart.reduce((s,i)=>s+i.qty*parseFloat(i.price),0).toFixed(2)+' '+CUR;
+  ft.style.display='block';
+};
+
+// removeFromCart يحتاج تحديث ليدعم نفس المنتج بتصاميم مختلفة
+function removeFromCart(id, designUrl='') {
+  if (designUrl) {
+    cart = cart.filter(i => !(i.id===id && (i.design_url||'')===designUrl));
+  } else {
+    cart = cart.filter(i => i.id!==id);
+  }
+  localStorage.setItem('f_cart', JSON.stringify(cart));
+  renderCart();
+}
+
+// keyboard shortcuts للمحرر
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('design-veil').classList.contains('on')) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); dmUndo(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='y') { e.preventDefault(); dmRedo(); }
+  if (e.key==='Escape') closeDesignEditor();
+  if (e.key==='Delete'||e.key==='Backspace') { e.preventDefault(); dmDelete(); }
+});
 </script>
 </body>
 </html>

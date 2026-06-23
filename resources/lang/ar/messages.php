@@ -2414,4 +2414,6 @@
   'قيد الطباعة' => 'قيد الطباعة',
   'في الطريق' => 'في الطريق',
   'Primary image size must be below 20MB' => 'Primary image size must be below 20MB',
+  'our_clients' => 'Our clients',
+  'product_visibility' => 'Product visibility',
 );

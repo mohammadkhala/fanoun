@@ -175,7 +175,73 @@
                         </div>
 
                             @if(isset($userTypes) && $userTypes->isNotEmpty())
+                            @php
+                                // Read raw DB value (bypasses 'array' cast edge-cases with null)
+                                $rawProdVtu          = $product->getAttributes()['visible_to_user_types'] ?? null;
+                                $prodEveryoneChecked = ($rawProdVtu === null || $rawProdVtu === '');
+                                $prodSavedIds        = $prodEveryoneChecked ? [] : (json_decode($rawProdVtu, true) ?? []);
+                            @endphp
                             <div class="col-12 mt-4">
+                                {{-- ── Product Visibility by User Type ─────────────── --}}
+                                <div class="card border mb-3">
+                                    <div class="card-header py-2">
+                                        <h6 class="card-header-title mb-0">
+                                            <i class="tio tio-user-switch"></i>
+                                            {{ translate('product_visibility') ?: 'من يرى هذا المنتج' }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-3">
+                                            اختر من يستطيع رؤية هذا المنتج في المتجر. اترك «كل الزوار» محدداً ليظهر للجميع.
+                                        </p>
+
+                                        {{-- Everyone toggle --}}
+                                        <div class="custom-control custom-checkbox mb-3">
+                                            <input type="checkbox"
+                                                   class="custom-control-input"
+                                                   id="prod-vis-everyone"
+                                                   name="visible_everyone"
+                                                   value="1"
+                                                   {{ $prodEveryoneChecked ? 'checked' : '' }}
+                                                   onchange="toggleProductVisibilityPanel(this)">
+                                            <label class="custom-control-label font-weight-bold" for="prod-vis-everyone">
+                                                كل الزوار (بدون قيود)
+                                            </label>
+                                        </div>
+
+                                        {{-- Specific types panel --}}
+                                        <div id="prod-vis-panel" style="{{ $prodEveryoneChecked ? 'display:none' : '' }}">
+                                            <div class="custom-control custom-checkbox mb-2">
+                                                <input type="checkbox"
+                                                       class="custom-control-input"
+                                                       id="prod-vis-guest"
+                                                       name="visible_to_user_types[]"
+                                                       value="0"
+                                                       {{ in_array(0, $prodSavedIds) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="prod-vis-guest">
+                                                    <i class="tio tio-user-add"></i> الزوار غير المسجلين
+                                                </label>
+                                            </div>
+                                            @foreach($userTypes as $ut)
+                                            <div class="custom-control custom-checkbox mb-2">
+                                                <input type="checkbox"
+                                                       class="custom-control-input"
+                                                       id="prod-vis-ut-{{ $ut->id }}"
+                                                       name="visible_to_user_types[]"
+                                                       value="{{ $ut->id }}"
+                                                       {{ in_array($ut->id, $prodSavedIds) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="prod-vis-ut-{{ $ut->id }}">
+                                                    {{ $ut->name }}
+                                                    @if($ut->is_default)
+                                                        <span class="badge badge-soft-success badge-sm">{{ translate('default') }}</span>
+                                                    @endif
+                                                </label>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="card bg-light p-3">
                                     <h6 class="mb-2 d-flex align-items-center gap-1">
                                         {{ translate('Prices by user type') }}
@@ -355,6 +421,10 @@
     @include('admin-views.business-settings.partial.summernote-editor-scripts')
     <script>
         "use strict";
+
+        function toggleProductVisibilityPanel(cb) {
+            document.getElementById('prod-vis-panel').style.display = cb.checked ? 'none' : '';
+        }
 
         function syncUserTypePricePlaceholders(basePrice) {
             var val = (basePrice === '' || basePrice == null) ? '' : String(basePrice);

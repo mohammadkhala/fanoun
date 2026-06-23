@@ -322,13 +322,13 @@
                             <small class="tio-more-horizontal nav-subtitle-replacer"></small>
                         </li>
 
-                        <li class="navbar-vertical-aside-has-menu {{Request::is('admin/banner*') || Request::is('admin/flash-sale*') || Request::is('admin/coupon*')?'active':''}}">
+                        <li class="navbar-vertical-aside-has-menu {{Request::is('admin/banner*') || Request::is('admin/flash-sale*') || Request::is('admin/coupon*') || Request::is('admin/client*')?'active':''}}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:">
                                 <i class="tio-shopping-basket-add nav-icon"></i>
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('marketing')}}</span>
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                                style="display: {{Request::is('admin/banner*') || Request::is('admin/flash-sale*') || Request::is('admin/coupon*')?'block':'none'}}">
+                                style="display: {{Request::is('admin/banner*') || Request::is('admin/flash-sale*') || Request::is('admin/coupon*') || Request::is('admin/client*')?'block':'none'}}">
                                 <li class="nav-item {{Request::is('admin/banner*')?'active':''}}">
                                     <a class="nav-link" href="{{route('admin.banner.add-new')}}"
                                        title="{{translate('banner')}}">
@@ -348,6 +348,13 @@
                                        title="{{translate('coupon')}}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate">{{translate('coupon')}}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item {{Request::is('admin/client*')?'active':''}}">
+                                    <a class="nav-link" href="{{route('admin.client.add-new')}}"
+                                       title="{{ translate('our_clients') ?: 'عملاؤنا يثقون بنا' }}">
+                                        <span class="tio-circle nav-indicator-icon"></span>
+                                        <span class="text-truncate">{{ translate('our_clients') ?: 'عملاؤنا يثقون بنا' }}</span>
                                     </a>
                                 </li>
                             </ul>

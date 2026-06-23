@@ -1,6 +1,5 @@
 <?php
 
-<<<<<<< HEAD
 return [
     /*
     |--------------------------------------------------------------------------
@@ -22,10 +21,4 @@ return [
     */
     Barryvdh\DomPDF\ServiceProvider::class,
     Kreait\Laravel\Firebase\ServiceProvider::class,
-=======
-use App\Providers\AppServiceProvider;
-
-return [
-    AppServiceProvider::class,
->>>>>>> 234599e73e73522fe1ac606664f852ec8702d836
 ];

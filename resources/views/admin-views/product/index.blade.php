@@ -255,6 +255,64 @@
 
                                 @if(isset($userTypes) && $userTypes->isNotEmpty())
                                 <div class="mt-4 pt-3 border-top">
+                                    {{-- ── Product Visibility by User Type ─────────────── --}}
+                                    <div class="card border mb-3">
+                                        <div class="card-header py-2">
+                                            <h6 class="card-header-title mb-0">
+                                                <i class="tio tio-user-switch"></i>
+                                                {{ translate('product_visibility') ?: 'من يرى هذا المنتج' }}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted small mb-3">
+                                                اختر من يستطيع رؤية هذا المنتج في المتجر. اترك «كل الزوار» محدداً ليظهر للجميع.
+                                            </p>
+
+                                            {{-- Everyone toggle --}}
+                                            <div class="custom-control custom-checkbox mb-3">
+                                                <input type="checkbox"
+                                                       class="custom-control-input"
+                                                       id="prod-vis-everyone"
+                                                       name="visible_everyone"
+                                                       value="1"
+                                                       checked
+                                                       onchange="toggleProductVisibilityPanel(this)">
+                                                <label class="custom-control-label font-weight-bold" for="prod-vis-everyone">
+                                                    كل الزوار (بدون قيود)
+                                                </label>
+                                            </div>
+
+                                            {{-- Specific types panel --}}
+                                            <div id="prod-vis-panel" style="display:none">
+                                                <div class="custom-control custom-checkbox mb-2">
+                                                    <input type="checkbox"
+                                                           class="custom-control-input"
+                                                           id="prod-vis-guest"
+                                                           name="visible_to_user_types[]"
+                                                           value="0">
+                                                    <label class="custom-control-label" for="prod-vis-guest">
+                                                        <i class="tio tio-user-add"></i> الزوار غير المسجلين
+                                                    </label>
+                                                </div>
+                                                @foreach($userTypes as $ut)
+                                                <div class="custom-control custom-checkbox mb-2">
+                                                    <input type="checkbox"
+                                                           class="custom-control-input"
+                                                           id="prod-vis-ut-{{ $ut->id }}"
+                                                           name="visible_to_user_types[]"
+                                                           value="{{ $ut->id }}">
+                                                    <label class="custom-control-label" for="prod-vis-ut-{{ $ut->id }}">
+                                                        {{ $ut->name }}
+                                                        @if($ut->is_default)
+                                                            <span class="badge badge-soft-success badge-sm">{{ translate('default') }}</span>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <h6 class="mb-3 d-flex align-items-center gap-1">
                                         {{ translate('section_user_type_pricing') }}
                                         <i class="tio-info-outlined text-muted fs-14" data-toggle="tooltip" data-placement="top" title="{{ translate('help_product_user_type_pricing') }}"></i>
@@ -375,6 +433,10 @@
     @include('admin-views.business-settings.partial.summernote-editor-scripts')
     <script>
         "use strict";
+
+        function toggleProductVisibilityPanel(cb) {
+            document.getElementById('prod-vis-panel').style.display = cb.checked ? 'none' : '';
+        }
 
         function syncUserTypePricePlaceholders(basePrice) {
             var val = (basePrice === '' || basePrice == null) ? '' : String(basePrice);

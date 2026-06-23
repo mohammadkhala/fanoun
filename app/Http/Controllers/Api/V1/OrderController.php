@@ -260,6 +260,7 @@ class OrderController extends Controller
                     'discount_type' => 'discount_on_product',
                     'variant' => $variantType,
                     'variation' => $variantJson,
+                    'design_image' => $c['design_image'] ?? null,
                     'is_stock_decreased' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),

@@ -175,6 +175,23 @@
                                                 @elseif($op && trim((string)(($op ?? [])['variant'] ?? '')) !== '')
                                                     <div class="font-size-sm text-body text-capitalize"><span class="font-weight-bold">{{ ($op ?? [])['variant'] }}</span></div>
                                                 @endif
+
+                                                {{-- عرض التصميم المخصص --}}
+                                                @if(!empty($detail->design_image))
+                                                <div class="mt-2">
+                                                    <a href="{{ $detail->design_image }}" target="_blank"
+                                                       title="عرض التصميم بالحجم الكامل">
+                                                        <img src="{{ $detail->design_image }}"
+                                                             alt="تصميم مخصص"
+                                                             style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid #10b46a;cursor:zoom-in">
+                                                    </a>
+                                                    <div class="mt-1">
+                                                        <span class="badge badge-soft-success" style="font-size:11px">
+                                                            <i class="fa fa-palette"></i> تصميم مخصص من العميل
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>

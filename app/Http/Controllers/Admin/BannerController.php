@@ -123,6 +123,7 @@ class BannerController extends Controller
         $banner = $this->banner;
         $banner->title = $request->title;
         $banner->banner_type = 'primary';
+        $banner->placement = in_array($request->input('placement'), ['main', 'hero_grid']) ? $request->input('placement') : 'main';
         if ($request['item_type'] == 'product') {
             $banner->product_id = $request->product_id;
             $banner->category_id = null;
@@ -192,6 +193,7 @@ class BannerController extends Controller
         $banner = $this->banner->find($id);
         $banner->title = $request->title;
         $banner->banner_type = 'primary';
+        $banner->placement = in_array($request->input('placement'), ['main', 'hero_grid']) ? $request->input('placement') : 'main';
         if ($request['item_type'] == 'product') {
             $banner->product_id = $request->product_id;
             $banner->category_id = null;
