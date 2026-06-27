@@ -107,7 +107,7 @@ class DesignTemplateController extends Controller
 
         Cache::forget(CACHE_DESIGN_TEMPLATES);
 
-        return redirect()->route('admin.design-template.add-new')
+        return redirect()->route('admin.product.list')
             ->with('success', translate('template_added') ?: 'تم إضافة القالب بنجاح');
     }
 
