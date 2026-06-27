@@ -652,7 +652,7 @@
     </div>
 
     {{-- ───── Templates List ───── --}}
-    <div class="card">
+    <div class="card" style="display:none">
         <div class="card-header bg-light category-form-card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-semibold d-flex align-items-center gap-2">
                 <i class="tio-layers me-1"></i>
